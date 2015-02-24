@@ -1,8 +1,8 @@
 *-----------------------------------------------------------
 * Title      : Final Project test
-* Written by : another team 
+* Written by : Jason FUUUU
 * Date       : 02/15/2015
-* Description: intend to input data into memory location. This is for reference
+* Description: intend to input data into memory location. 
 *-----------------------------------------------------------
 
     ORG         $0000A000
@@ -55,30 +55,30 @@ START
     MOVE.L  D0, $AE111
     MOVE.L  D0, $E1234
     
-*-MOVEA opcode-----------------------------------
+*-MOVEQ opcode-----------------------------------
     *---MOVEA.W
-    MOVEA.W  #%11001,A1
-    MOVEA.W  $4180AABB,A2
-    MOVEA.W  #$ACAA,A1
-    MOVEA.W  21031,A4
-    MOVEA.W  D1,A6
-    MOVEA.W  A2,A2
-    MOVEA.W  D0,A0
-    MOVEA.W  (A1), A2
-    MOVEA.W  (A1)+,A2
-    MOVEA.W  -(A1),A2
+    MOVEQ.W  #%11001,A1
+    MOVEQ.W  $4180AABB,A2
+    MOVEQ.W  #$ACAA,A1
+    MOVEQ.W  21031,A4
+    MOVEQ.W  D1,A6
+    MOVEQ.W  A2,A2
+    MOVEQ.W  D0,A0
+    MOVEQ.W  (A1), A2
+    MOVEQ.W  (A1)+,A2
+    MOVEQ.W  -(A1),A2
 
     *---MOVEA.L
-    MOVEA.L  #%11001,A1
-    MOVEA.L  $4180AABB,A2
-    MOVEA.L  #$ACAA,A1
-    MOVEA.L  21031,A4
-    MOVEA.L  D1,A6
-    MOVEA.L  A2,A2
-    MOVEA.L  D0,A0
-    MOVEA.L  (A1), A2
-    MOVEA.L  (A1)+,A2
-    MOVEA.L  -(A1),A2
+    MOVEQ.L  #%11001,A1
+    MOVEQ.L  $4180AABB,A2
+    MOVEQ.L  #$ACAA,A1
+    MOVEQ.L  21031,A4
+    MOVEQ.L  D1,A6
+    MOVEQ.L  A2,A2
+    MOVEQ.L  D0,A0
+    MOVEQ.L  (A1), A2
+    MOVEQ.L  (A1)+,A2
+    MOVEQ.L  -(A1),A2
 
 *--MOVEM OPCODE--------------------------------------
     MOVEM.L D0-D7/A0-A6,$1234
@@ -96,11 +96,11 @@ START
     ANDI    #$1234,(A2)
 
 *----ORI---------
-    ORI.B #%00000011,(A0)+
-    ORI.B #%00000011,-(A0)
-    ORI.B #%00000011,(A0)
-    ORI.W #$F001,D0
-    ORI.L #$11111111,D0
+    EOR.B #%00000011,(A0)+
+    EOR.B #%00000011,-(A0)
+    EOR.B #%00000011,(A0)
+    EOR.W #$F001,D0
+    EOR.L #$11111111,D0
     
 *----EORI
     EORI    #%10000111,D7
@@ -111,11 +111,6 @@ START
     EORI    #$F0,(A2)
     EORI    #$123,(A2) 
 
-*----NOT
-    NOT       $FE00
-    NOT.B     (A2)+
-    NOT.w     -(A2) 
-    NOT.L     (A2)  
     
 *---CMP
     CMP     D0,D1
@@ -143,7 +138,7 @@ START
     CMPI       #$2000,D1 
     
 
-************Rattanak: ADDA, ADDQ, SUB, SUBA,SUBI, MULU, MULS, LEA **********
+************ADD, ADDA, ADDQ, SUB, SUBA, SUBI, MULU, MULS, LEA **************
 *---ADD---------------------------------------------------------------------
 *---ADD.B
     ADD.B  $48,D2
@@ -210,18 +205,15 @@ START
     SUBI.W  #$1,D1
     SUBI.W  #1, $1234
     SUBI.L  #$1, $1234
-*---MULU
-    MULU.W  #1,D1
-    MULU.W  D0,D1
-    MULU.W  #$00001,D0
-    MULU.W  #$1,D1
-    MULU.W  D0, D1
+
 *---MULS
     MULS.W  #1,D1
     MULS.W  D0,D1
     MULS.W  #$00001,D0
     MULS.W  #$1,D1
     MULS.W  D0, D1
+*---NEED: DIVS
+
 *---LEA
     LEA.L  $1000,A0
     LEA  $1001,A0
@@ -560,6 +552,9 @@ someLabel
 
 
      END           START
+
+
+
 
 
 
