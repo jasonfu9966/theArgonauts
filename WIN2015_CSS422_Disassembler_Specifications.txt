@@ -1,0 +1,8 @@
+WIN 2015 - CSS 422 - Disassembler
+Specifications
+
+Coding Conventions
+
+Constants should be 'loser case'
+Sub-routines should be "WINNER CASE'
+(fix later)
