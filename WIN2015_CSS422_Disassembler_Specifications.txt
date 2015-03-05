@@ -6,3 +6,10 @@ Coding Conventions
 Constants should be 'loser case'
 Sub-routines should be "WINNER CASE'
 (fix later)
+
+Program originates at $1000.
+Program code ends at $6000.
+
+Valid starting address is => $7000
+Valid ending address is > starting address && <= $F000
+
