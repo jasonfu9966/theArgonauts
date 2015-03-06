@@ -21,7 +21,7 @@ SHIFT13 EQU     13
 
         ORG    $1000
     
-START   JSR     LoadStackJump
+START   *JSR     LoadStackJump
         JSR     Intro
         JSR     GetStartAddr
         JSR     GetEndAddr
@@ -40,90 +40,90 @@ LoadStackJump
 
 JmpTable 
 
-               JMP         code0000
-
-               JMP         code0001
-
-               JMP         code0010
-
-               JMP         code0011
-
-               JMP         code0100
-
-               JMP         code0101
-
-               JMP         code0110
-
-               JMP         code0111
-
-               JMP         code1000
-
-               JMP         code1001
-
-               JMP         code1010
-
-               JMP         code1011
-
-               JMP         code1100
-
-               JMP         code1101
-
-               JMP         code1110
-
-               JMP         code1111
+*               JMP         code0000
+*
+*               JMP         code0001
+*
+*               JMP         code0010
+*
+*               JMP         code0011
+*
+*               JMP         code0100
+*
+*               JMP         code0101
+*
+*               JMP         code0110
+*
+*               JMP         code0111
+*
+*               JMP         code1000
+*
+*               JMP         code1001
+*
+*               JMP         code1010
+*
+*               JMP         code1011
+*
+*               JMP         code1100
+*
+*               JMP         code1101
+*
+*               JMP         code1110
+*
+*               JMP         code1111
 
 *----------------------------------------------------------------
 *              OpCode Routine Jump Table                        |
 *----------------------------------------------------------------
 
-code0000       JSR          GroupZero
-               BRA          continueMain
-
-code0001       JSR          MoveByte
-               BRA          continueMain
-code0010       JSR          MoveLong               
-               BRA          continueMain
-
-code0011       JSR          MoveWord
-               BRA          continueMain
-
-code0100       JSR          code0100Decode
-               BRA          continueMain
-
-code0101       JSR          code0101Decode
-               BRA        continueMain
-
-code0110       JSR          BranchGroup
-               BRA        continueMain
-
-code0111       JSR          outBadData
-               BRA          continueMain
-
-code1000       JSR          code1000Decode
-               BRA          continueMain
-                
-              
-code1001       JSR          code1001Decode
-               BRA          continueMain
-
-code1010       JSR          outBadData
-               BRA          continueMain
- 
-code1011       JSR          code1011Decode
-               BRA          continueMain
-
-code1100       JSR          code1100Decode
-               BRA          continueMain
-
-
-code1101       JSR          AddGroup
-               BRA          continueMain
-
-code1110       JSR          BitShiftGroup
-               BRA          continueMain
-
-code1111       JSR          outBadData
-               BRA          continueMain
+*code0000       JSR          GroupZero
+*               BRA          continueMain
+*
+*code0001       JSR          MoveByte
+*               BRA          continueMain
+*code0010       JSR          MoveLong               
+*               BRA          continueMain
+*
+*code0011       JSR          MoveWord
+*               BRA          continueMain
+*
+*code0100       JSR          code0100Decode
+*               BRA          continueMain
+*
+*code0101       JSR          code0101Decode
+*               BRA        continueMain
+*
+*code0110       JSR          BranchGroup
+*               BRA        continueMain
+*
+*code0111       JSR          outBadData
+*               BRA          continueMain
+*
+*code1000       JSR          code1000Decode
+*               BRA          continueMain
+*                
+*              
+*code1001       JSR          code1001Decode
+*               BRA          continueMain
+*
+*code1010       JSR          outBadData
+*               BRA          continueMain
+* 
+*code1011       JSR          code1011Decode
+*               BRA          continueMain
+*
+*code1100       JSR          code1100Decode
+*               BRA          continueMain
+*
+*
+*code1101       JSR          AddGroup
+*               BRA          continueMain
+*
+*code1110       JSR          BitShiftGroup
+*               BRA          continueMain
+*
+*code1111       JSR          outBadData
+*               BRA          continueMain
 
 *----------------------------------------------------------------
 *              END JMP AND ROUTINE TABLE                        |
@@ -234,6 +234,7 @@ var_start_addr  DS.L    1
 var_end_addr    DS.L    1
 
     END     START
+
 
 
 *~Font name~Courier New~
