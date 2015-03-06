@@ -1,8 +1,8 @@
 *-----------------------------------------------------------
-* Title      :
-* Written by :
-* Date       :
-* Description:
+* Title      :  68k Disassembler
+* Written by :	Nicholas Abel & Jason Fu
+* Date       :	February 2015
+* Description:	Winter 2015 CSS422 Disassembler
 *-----------------------------------------------------------
 LF      EQU     $0A
 CR      EQU     $0D
@@ -23,6 +23,7 @@ DISPLAY_MSG
 
 
 msg_intro   DC.B    "Welcome to the 68k Dissesembler",LF,CR,0
+	    DC.B    "Please enter starting address: ",LF,CR,0
 *~Font name~Courier New~
 *~Font size~10~
 *~Tab type~1~
