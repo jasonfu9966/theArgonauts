@@ -5,7 +5,7 @@
 * Description:
 *----------------------------------------------------------
 
-*--Preprocessor Instructions--*
+*===Preprocessor Instructions===*
 
 LF      EQU     $0A *New Line (Line Feed)
 CR      EQU     $0D *Carriage Return
@@ -17,17 +17,23 @@ SHIFT11 EQU     11
 SHIFT12 EQU     12
 SHIFT13 EQU     13
 
-*--Code Body--*
+*===Code Body===*
 
         ORG    $1000
     
-START   *JSR     LoadStackJump
+START   JSR     ClearAll
+        *JSR     LoadStackJump
         JSR     Intro
         JSR     GetStartAddr
         JSR     GetEndAddr
+        JSR     LoadStartAddr
+        JSR     MainLoop
         JMP     End
         
-*--Main Routines--*
+*===Main Routines===*
+
+ClearAll
+        CLR.B   var_num_displayed
 
 LoadStackJump
         LEA     STACK,  SP
@@ -153,8 +159,50 @@ GetEndAddr
         JSR     Helper_GetInput
         JSR     Helper_CharToHex
         RTS
+
+LoadStartAddr
+        LEA     (var_start_addr), A5
+        RTS
+
+*===Main Loop Routines===*
+
+MainLoop
+        RTS     DisplayedTenLinesYet
+        JMP     CheckPositionAgainstEnd
         
-*--Helper Routines--*
+CheckPositionAgainstEnd
+        CMPA.L  var_end_addr,   A5
+        BGE     EndReached
+        BRA     MainLoopCont
+        
+MainLoopCont
+        JSR     Buffer_LoadBuffer
+        JSR     Buffer_BufferAddress
+
+EndReached
+        *Go Again
+        *Yes JMP START
+        *No  JMP end
+        
+*===Main Loop Sub-Routines===*
+
+LoadLineAddr
+        MOVE.L  A5,     var_line_addr
+        RTS
+
+DisplayedTenLinesYet
+        CMP.B   #10,    var_num_displayed
+        BLT     LessThanTenLines
+        LEA     msg_continue_request,   A1
+        RTS     Helper_DisplayMsg
+        CLR.B   var_num_displayed
+LessThanTenLines
+        RTS
+
+
+*===Helper Routines===*
+
+*--Helper: DisplayMsg--*
 
 Helper_DisplayMsg
 
@@ -167,14 +215,16 @@ Helper_GetInput
         MOVE.B  #2,     D0
         TRAP    #15
         RTS
-        
+
+*--Helper: CharToHex--*
+
 Helper_CharToHex
         
         CLR     D6
-        JSR     CharToHex
+        JSR     CharToHex_Loop
         RTS
         
-CharToHex
+CharToHex_Loop
 
         ADD.B   #%1,    D6  *Update counter
         CMP.W   D1,     D6  *Have we decoded all characters?
@@ -210,14 +260,60 @@ CharToHex_ToLong
         LSR.B   #4,     D2
         LSL.L   #4,     D4
         ADD.B   D2,     D4
-        BRA     CharToHex
+        BRA     CharToHex_Loop
         
 CharToHex_Done
         RTS
         
+*--Helper: HexToChar--*
 
-error   NOP *Add: Print error msg        
+Helper_HexToChar
+        ADDI.B  #1, var_decode_counter
+        ROL.L   #4, D5
+        MOVE.B  D5, D4
+        LSL.B   #4, D4
+        LSR.B   #4, D4
+        JSR     HexToChar_NumOrLetter
+        MOVE.B  var_decode_length,  D1
+        CMP.B   var_decode_counter, var_decode_length
+        BNE     Helper_HexToChar
+        RTS
         
+HexToChar_NumOrLetter
+        CMPI.B  #%1010, D4
+        BGE     HexToChar_ToLetter
+        BLT     HexToChar_ToNumber
+        
+
+        
+        
+*--Helper: Buffer Routines--*
+
+Buffer_LoadBuffer
+        LEA     var_output_buffer,  A6
+        RTS
+        
+Buffer_ClearBuffer
+        CLR     var_output_buffer
+        RTS
+
+Buffer_BufferAddress
+        JSR     LoadLineAddr
+        MOVE.L  var_line_addr,  D5        
+        MOVE.B  #8,     var_decode_length
+        CLR.B   var_decode_counter
+        JSR     Helper_HexToChar
+        JSR     Helper_BufferTab
+        
+           
+
+*--Helper: Character Routines--*
+
+Helper_BufferTab
+        MOVE.B  #$9,    (A6)+
+        RTS
+
+error   NOP *Add: Print error msg
 end     NOP
 
     SIMHALT             ; halt simulator
@@ -227,13 +323,23 @@ end     NOP
 msg_intro           DC.B    'Welcome to the 68k Dissesembler.',LF,CR,0
 msg_start_request   DC.B    'Please enter an starting address: ',0
 msg_end_request     DC.B    'Please enter an ending address: ',0
+msg_continue_request    DC.B    'Hit any key to continue',0
 
 *--Variables--*
 
 var_start_addr  DS.L    1
 var_end_addr    DS.L    1
 
+var_decode_counter  DS.B    1
+var_decode_length   DS.B    1
+
+var_num_displayed   DS.W    1
+
+var_line_addr       DS.l    1
+var_output_buffer   DS.L    10
+
     END     START
+
 
 
 
