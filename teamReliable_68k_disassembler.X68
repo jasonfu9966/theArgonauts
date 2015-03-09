@@ -1,7 +1,7 @@
-*-----------------------------------------------------------
-* Title      :
-* Written by :
-* Date       :
+/*-----------------------------------------------------------
+* Title      :      EASY68K DISASSEMBLER
+* Written by :      NICHOLAS ABEL AND JASON FU
+* Date       :      MARCH 2015
 * Description:
 *----------------------------------------------------------
 
@@ -22,7 +22,7 @@ SHIFT13 EQU     13
         ORG    $1000
     
 START   JSR     ClearAll
-        JSR     LoadStackJump
+        *JSR     LoadStackJump
         JSR     Intro
         JSR     GetStartAddr
         JSR     GetEndAddr
@@ -34,9 +34,6 @@ START   JSR     ClearAll
 
 ClearAll
         CLR.B   var_num_displayed
-        CLR.L   var_start_addr
-        CLR.L   var_end_addr
-        RTS
 
 LoadStackJump
         LEA     STACK,  SP
@@ -49,90 +46,89 @@ LoadStackJump
 
 JmpTable 
 
-               JMP         code0000
-
-               JMP         code0001
-
-               JMP         code0010
-
-               JMP         code0011
-
-               JMP         code0100
-
-               JMP         code0101
-
-               JMP         code0110
-
-               JMP         code0111
-
-               JMP         code1000
-
-               JMP         code1001
-
-               JMP         code1010
-
-               JMP         code1011
-
-               JMP         code1100
-
-               JMP         code1101
-
-               JMP         code1110
-
-               JMP         code1111
+*               JMP         code0000
+*
+*               JMP         code0001
+*
+*               JMP         code0010
+*
+*               JMP         code0011
+*
+*               JMP         code0100
+*
+*               JMP         code0101
+*
+*               JMP         code0110
+*
+*               JMP         code0111
+*
+*               JMP         code1000
+*
+*               JMP         code1001
+*
+*               JMP         code1010
+*
+*               JMP         code1011
+*
+*               JMP         code1100
+*
+*               JMP         code1101
+*
+*               JMP         code1110
+*
+*               JMP         code1111
 
 *----------------------------------------------------------------
 *              OpCode Routine Jump Table                        |
 *----------------------------------------------------------------
 
-code0000       *JSR          GroupZero
+*code0000       JSR          GroupZero
 *               BRA          continueMain
-
-code0001       *JSR          MoveByte
+*
+*code0001       JSR          MoveByte
 *               BRA          continueMain
-               
-code0010       *JSR          MoveLong               
+*code0010       JSR          MoveLong               
 *               BRA          continueMain
-
-code0011       *JSR          MoveWord
+*
+*code0011       JSR          MoveWord
 *               BRA          continueMain
-
-code0100       *JSR          code0100Decode
+*
+*code0100       JSR          code0100Decode
 *               BRA          continueMain
-
-code0101       *JSR          code0101Decode
+*
+*code0101       JSR          code0101Decode
 *               BRA        continueMain
-
-code0110       *JSR          BranchGroup
+*
+*code0110       JSR          BranchGroup
 *               BRA        continueMain
-
-code0111       *JSR          outBadData
+*
+*code0111       JSR          outBadData
 *               BRA          continueMain
-
-code1000       *JSR          code1000Decode
+*
+*code1000       JSR          code1000Decode
 *               BRA          continueMain
-                
-              
-code1001       *JSR          code1001Decode
+*                
+*              
+*code1001       JSR          code1001Decode
 *               BRA          continueMain
-
-code1010       *JSR          outBadData
+*
+*code1010       JSR          outBadData
 *               BRA          continueMain
- 
-code1011       *JSR          code1011Decode
+* 
+*code1011       JSR          code1011Decode
 *               BRA          continueMain
-
-code1100       *JSR          code1100Decode
+*
+*code1100       JSR          code1100Decode
 *               BRA          continueMain
-
-
-code1101       *JSR          AddGroup
+*
+*
+*code1101       JSR          AddGroup
 *               BRA          continueMain
-
-code1110       *JSR          BitShiftGroup
+*
+*code1110       JSR          BitShiftGroup
 *               BRA          continueMain
-
-code1111       *JSR          outBadData
+*
+*code1111       JSR          outBadData
 *               BRA          continueMain
 
 *----------------------------------------------------------------
@@ -144,38 +140,34 @@ Intro
         JSR     Helper_DisplayMsg
         RTS
 
-GetStartAddr    *Used:  A1, D2, D6
+GetStartAddr
 
         LEA     msg_start_request,  A1
         JSR     Helper_DisplayMsg
-        LEA     var_start_addr,     A1
+        LEA     var_start_addr,  A1
+        CLR     D0
         JSR     Helper_GetInput
         JSR     Helper_CharToHex
-        CLR.L   var_start_addr
-        MOVE.L  D4,                 var_start_addr
-        CLR     D4
         RTS
 
-GetEndAddr      *Used
+GetEndAddr
 
-        LEA     msg_end_request,    A1
+        LEA     msg_end_request,  A1
         JSR     Helper_DisplayMsg
-        LEA     var_end_addr,       A1
+        LEA     var_end_addr,  A1
+        CLR     D0
         JSR     Helper_GetInput
         JSR     Helper_CharToHex
-        CLR.L   var_end_addr
-        MOVE.L  D4,                 var_end_addr
-        CLR     D4
         RTS
 
 LoadStartAddr
-        MOVE.L  var_start_addr, A5
+        LEA     (var_start_addr), A5
         RTS
 
 *===Main Loop Routines===*
 
 MainLoop
-        JSR     DisplayedTenLinesYet
+        RTS     DisplayedTenLinesYet
         JMP     CheckPositionAgainstEnd
         
 CheckPositionAgainstEnd
@@ -186,11 +178,10 @@ CheckPositionAgainstEnd
 MainLoopCont
         JSR     Buffer_LoadBuffer
         JSR     Buffer_BufferAddress
-        JSR     LoadOpCode
 
 EndReached
         *Go Again
-        *Yes JMP START
+        *Yes JMP START                       ;--------------------------------------
         *No  JMP end
         
 *===Main Loop Sub-Routines===*
@@ -203,21 +194,11 @@ DisplayedTenLinesYet
         CMP.B   #10,    var_num_displayed
         BLT     LessThanTenLines
         LEA     msg_continue_request,   A1
-        JSR     Helper_DisplayMsg
+        RTS     Helper_DisplayMsg
         CLR.B   var_num_displayed
 LessThanTenLines
         RTS
 
-LoadOpCode
-        CLR     D5
-        MOVE.W  (A5)+,  D5
-        MOVE.W  D5,     var_opcode_op
-        CLR     D0
-        MOVE.W  D5,     D0
-        MOVE.B  #12,    D1
-        LSR.W   D1,     D0
-        MULU    #6,     D0
-        JSR     0(A0,D0)
 
 *===Helper Routines===*
 
@@ -227,14 +208,12 @@ Helper_DisplayMsg
 
         MOVE.B  #13,    D0
         TRAP    #15
-        CLR     D0
         RTS
         
 Helper_GetInput
 
         MOVE.B  #2,     D0
         TRAP    #15
-        CLR     D0
         RTS
 
 *--Helper: CharToHex--*
@@ -284,18 +263,11 @@ CharToHex_ToLong
         BRA     CharToHex_Loop
         
 CharToHex_Done
-        CLR     D1
-        CLR     D2
-        CLR     D6
         RTS
         
 *--Helper: HexToChar--*
 
 Helper_HexToChar
-        CLR.B   var_decode_counter
-        JMP     HexToChar_Loop
-
-HexToChar_Loop
         ADDI.B  #1, var_decode_counter
         ROL.L   #4, D5
         MOVE.B  D5, D4
@@ -303,27 +275,16 @@ HexToChar_Loop
         LSR.B   #4, D4
         JSR     HexToChar_NumOrLetter
         MOVE.B  var_decode_length,  D1
-        CMP.B   var_decode_counter, D1
-        BNE     HexToChar_Loop
-        CLR     D1
-        CLR     D4
-        CLR     D5
+        CMP.B   var_decode_counter, var_decode_length
+        BNE     Helper_HexToChar
         RTS
         
 HexToChar_NumOrLetter
         CMPI.B  #%1010, D4
-        BGE     HexToChar_Letter
-        BLT     HexToChar_Number
+        BGE     HexToChar_ToLetter
+        BLT     HexToChar_ToNumber
         
-HexToChar_Letter
-        ADDI.B  #$37,   D4
-        MOVE.B  D4,     (A6)+
-        RTS
 
-HexToChar_Number
-        ADDI.B  #$30,   D4
-        MOVE.B  D4,     (A6)+
-        RTS
         
         
 *--Helper: Buffer Routines--*
@@ -340,9 +301,9 @@ Buffer_BufferAddress
         JSR     LoadLineAddr
         MOVE.L  var_line_addr,  D5        
         MOVE.B  #8,     var_decode_length
+        CLR.B   var_decode_counter
         JSR     Helper_HexToChar
         JSR     Helper_BufferTab
-        RTS
         
            
 
@@ -369,9 +330,6 @@ msg_continue_request    DC.B    'Hit any key to continue',0
 var_start_addr  DS.L    1
 var_end_addr    DS.L    1
 
-var_opcode_addr DS.L    1
-var_opcode_op   DS.W    1
-
 var_decode_counter  DS.B    1
 var_decode_length   DS.B    1
 
@@ -381,7 +339,6 @@ var_line_addr       DS.l    1
 var_output_buffer   DS.L    10
 
     END     START
-
 
 
 
