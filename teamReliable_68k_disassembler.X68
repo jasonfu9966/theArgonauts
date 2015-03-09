@@ -1,7 +1,7 @@
-*-----------------------------------------------------------
-* Title      :
-* Written by :
-* Date       :
+/*-----------------------------------------------------------
+* Title      :      EASY68K DISASSEMBLER
+* Written by :      NICHOLAS ABEL AND JASON FU
+* Date       :      MARCH 2015
 * Description:
 *----------------------------------------------------------
 
@@ -181,7 +181,7 @@ MainLoopCont
 
 EndReached
         *Go Again
-        *Yes JMP START
+        *Yes JMP START                       ;--------------------------------------
         *No  JMP end
         
 *===Main Loop Sub-Routines===*
@@ -339,6 +339,8 @@ var_line_addr       DS.l    1
 var_output_buffer   DS.L    10
 
     END     START
+
+
 
 
 
