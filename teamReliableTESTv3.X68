@@ -5,7 +5,7 @@
 * Description: intend to input data into memory location. 
 *-----------------------------------------------------------
 
-    ORG         $0000A000
+    ORG         $00005000
 START
 
 TEST_TOP        RTS
@@ -65,16 +65,16 @@ TEST_TOP        RTS
     
 *-MOVEQ opcode-----------------------
     *----MOVEQ.L
-    MOVEQ.L  #%11001,A1
-    MOVEQ.L  $4180AABB,A2
-    MOVEQ.L  #$ACAA,A1
-    MOVEQ.L  21031,A4
-    MOVEQ.L  D1,A6
-    MOVEQ.L  A2,A2
-    MOVEQ.L  D0,A0
-    MOVEQ.L  (A1), A2
-    MOVEQ.L  (A1)+,A2
-    MOVEQ.L  -(A1),A2
+*    MOVEQ.L  #%11001,A1
+*    MOVEQ.L  $4180AABB,A2
+*    MOVEQ.L  #$ACAA,A1
+*    MOVEQ.L  21031,A4
+*    MOVEQ.L  D1,A6
+*    MOVEQ.L  A2,A2
+*    MOVEQ.L  D0,A0
+*    MOVEQ.L  (A1), A2
+*    MOVEQ.L  (A1)+,A2
+*    MOVEQ.L  -(A1),A2
     
 *---ADD Opcode-----------------------
 *---ADD.B
@@ -106,8 +106,8 @@ TEST_TOP        RTS
 *---ADDA
     ADDA.W  #101,A1
     ADDA.W  D0,A1
-    ADDA.W  D0, $E111
-    ADDA.W  D0, $E1234560
+*    ADDA.W  D0, $E111
+*    ADDA.W  D0, $E1234560
     ADDA.L  #101,A1
     ADDA.L  #$101,A1
 
@@ -151,11 +151,11 @@ TEST_TOP        RTS
     MULS.W  D0, D1
 
 *---MULS.L
-    MULS.L  #1, D1
-    MULS.L  D0, D1
-    MULS.L  #$000001, D0
-    MULS.L  #$1,    D1
-    MULS.L  D0, D1
+*    MULS.L  #1, D1
+*    MULS.L  D0, D1
+*    MULS.L  #$000001, D0
+*    MULS.L  #$1,    D1
+*    MULS.L  D0, D1
 
 *---DIVS
     DIVS    D0,D1
@@ -366,6 +366,10 @@ DUMB        RTS
     
 TEST_BOT            RTS
      END           START
+
+
+
+
 
 
 
