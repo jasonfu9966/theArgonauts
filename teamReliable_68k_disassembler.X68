@@ -22,7 +22,10 @@ SHIFT13 EQU     13
         ORG    $1000
     
 START   JSR     ClearAll
-        JSR     LoadStackJump
+
+        LEA     STACK,  SP
+        LEA     JmpTable,   A0
+
         JSR     Intro
         JSR     GetStartAddr
         JSR     GetEndAddr
@@ -37,11 +40,19 @@ ClearAll
         CLR.L   var_start_addr
         CLR.L   var_end_addr
         RTS
+        
+ClearAllDn
+        CLR.L   D0
+        CLR.L   D1
+        CLR.L   D2
+        CLR.L   D3
+        CLR.L   D4
+        CLR.L   D5
+        CLR.L   D6
+        CLR.L   D7
+        RTS
 
 LoadStackJump
-        LEA     STACK,  SP
-        LEA     JmpTable,   A0
-        RTS
         
 *----------------------------------------------------------------
 *              OpCode JUMP Table                                |
@@ -85,54 +96,52 @@ JmpTable
 *              OpCode Routine Jump Table                        |
 *----------------------------------------------------------------
 
-code0000       *JSR          GroupZero
+code0000        JSR          Group0000      *Immediate Op's: CMPI, SUBI, ANDI, EORI, BCHG
 *               BRA          continueMain
 
-code0001       *JSR          MoveByte
+code0001       *JSR          MoveByte       *MOVE - Byte
 *               BRA          continueMain
                
-code0010       *JSR          MoveLong               
+code0010       *JSR          MoveLong       *MOVE - Long
 *               BRA          continueMain
 
-code0011       *JSR          MoveWord
+code0011       *JSR          MoveWord       *MOVE - Word
 *               BRA          continueMain
 
-code0100       *JSR          code0100Decode
+code0100       *JSR          code0100Decode *MOVEM + LEA, CLR, JSR, RTS
 *               BRA          continueMain
 
-code0101       *JSR          code0101Decode
-*               BRA        continueMain
-
-code0110       *JSR          BranchGroup
-*               BRA        continueMain
-
-code0111       *JSR          outBadData
+code0101       *JSR          code0101Decode *ADDQ
 *               BRA          continueMain
 
-code1000       *JSR          code1000Decode
-*               BRA          continueMain
-                
-              
-code1001       *JSR          code1001Decode
+code0110       *JSR          BranchGroup    *Branch Op's: BCC, BGT, BLE, BVS, BRA
 *               BRA          continueMain
 
-code1010       *JSR          outBadData
+code0111       *JSR          outBadData     *MOVEQ
+*               BRA          continueMain
+
+code1000       *JSR          code1000Decode *DIVS,
+*               BRA          continueMain
+
+code1001       *JSR          code1001Decode *SUB, SUBA
+*               BRA          continueMain
+
+code1010       *JSR          outBadData     *NOT USED
 *               BRA          continueMain
  
-code1011       *JSR          code1011Decode
+code1011       *JSR          code1011Decode *EOR, CMP, CMPA,
 *               BRA          continueMain
 
-code1100       *JSR          code1100Decode
+code1100       *JSR          code1100Decode *MULS, AND
 *               BRA          continueMain
 
-
-code1101       *JSR          AddGroup
+code1101       *JSR          AddGroup       *ADD, ADDA
 *               BRA          continueMain
 
-code1110       *JSR          BitShiftGroup
+code1110       *JSR          BitShiftGroup  *Shift/Rotate Op's: LSR, LSL, ASR, ASL, ROR, ROL
 *               BRA          continueMain
 
-code1111       *JSR          outBadData
+code1111       *JSR          outBadData     *NOT USED (Not valid for any 68k Op Codes)
 *               BRA          continueMain
 
 *----------------------------------------------------------------
@@ -218,6 +227,72 @@ LoadOpCode
         LSR.W   D1,     D0
         MULU    #6,     D0
         JSR     0(A0,D0)
+        
+*----------------------------------------------------------------
+*              Op Code Decode Routines                          |
+*----------------------------------------------------------------
+
+Group0000   *Immediate Op's: CMPI, SUBI, ANDI, EORI, BCHG
+        JSR     ClearAllDn
+        MOVE.W  var_opcode_op,  D5
+*--Isolate next 4 bits        
+        MOVE.W  D5,     D4
+        JSR     Decode_Isolate0to7onD4
+*--Check if BCHG (bit #3 is set, byte size)
+        BSET    #3,     D4
+        BVS     Group0000_BCHG_dn
+        BRA     Group0000_cont
+Group0000_BCHG_dn
+*--Isolate size (bit #0 to #2, byte size)
+        LSR.W   #1,     D4
+        MOVE.B  D4,     var_opcode_src_reg
+*Setsize? (Long only)
+*MOVE.B  #%00000010, var_opcode_size
+        BRA     Group0000_ea
+        
+Group0000_cont
+*--Is it a BCHG?
+        CMP.W   #8,     D4
+        BNE     Group0000_IOps_size
+*Setsize? (Byte only)
+*MOVE.B  #%00000000, var_opcode_size
+        BRA     Group0000_ea
+   
+Group0000_IOps_size
+*--Isolate size (bit #8-#9)
+        CLR     D4
+        MOVE.B  D5,     D4
+        LSR     #6,     D4
+        MOVE.B  D4,     var_opcode_size
+        BRA     Group0000_ea
+
+Group0000_ea
+*--Isolate EA dest mode
+        CLR     D4
+        MOVE.B  D5,     D4
+        LSL.B   #2,     D4
+        LSR.B   #5,     D4
+        MOVE.B  D4,     var_opcode_dest_mode
+
+Group0000_ea
+
+        jmp     end
+        
+
+*----------------------------------------------------------------
+*              END Op Code Decode Routines                      |
+*----------------------------------------------------------------
+
+*----------------------------------------------------------------
+*              END Op Code Decode Helper Routines               |
+*----------------------------------------------------------------
+
+Decode_Isolate0to7onD4
+        LSR.W   #8,     D4
+        RTS
+        
+        
+        
 
 *===Helper Routines===*
 
@@ -343,8 +418,6 @@ Buffer_BufferAddress
         JSR     Helper_HexToChar
         JSR     Helper_BufferTab
         RTS
-        
-           
 
 *--Helper: Character Routines--*
 
@@ -371,6 +444,10 @@ var_end_addr    DS.L    1
 
 var_opcode_addr DS.L    1
 var_opcode_op   DS.W    1
+var_opcode_size DS.B    1
+var_opcode_src_reg      DS.B    1
+var_opcode_dest_mode    DS.B    1
+var_opcode_dest_reg     DS.B    1
 
 var_decode_counter  DS.B    1
 var_decode_length   DS.B    1
@@ -381,6 +458,8 @@ var_line_addr       DS.l    1
 var_output_buffer   DS.L    10
 
     END     START
+
+
 
 
 
