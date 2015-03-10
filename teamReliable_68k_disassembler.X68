@@ -99,13 +99,13 @@ JmpTable
 code0000        JSR          Group0000      *Immediate Op's: CMPI, SUBI, ANDI, EORI, BCHG
 *               BRA          continueMain
 
-code0001       *JSR          MoveByte       *MOVE - Byte
+code0001       *JSR          Group0001       *MOVE - Byte
 *               BRA          continueMain
                
-code0010       *JSR          MoveLong       *MOVE - Long
+code0010       *JSR          Group0010       *MOVE - Long
 *               BRA          continueMain
 
-code0011       *JSR          MoveWord       *MOVE - Word
+code0011       *JSR          Group0011       *MOVE - Word
 *               BRA          continueMain
 
 code0100       *JSR          code0100Decode *MOVEM + LEA, CLR, JSR, RTS
@@ -117,7 +117,7 @@ code0101       *JSR          code0101Decode *ADDQ
 code0110       *JSR          BranchGroup    *Branch Op's: BCC, BGT, BLE, BVS, BRA
 *               BRA          continueMain
 
-code0111       *JSR          outBadData     *MOVEQ
+code0111       *JSR          code0111Decode     *MOVEQ
 *               BRA          continueMain
 
 code1000       *JSR          code1000Decode *DIVS,
@@ -282,6 +282,117 @@ Group0000_ea
 
         jmp     end
         
+*---todo
+Group0001           *Immediate OP code: MOVE.B
+            JSR     ClearAllDn
+            MOVE.W  var_opcode_op,  D5
+*---Isolate next four bits
+            MOVE.W  D5,     D4
+            JSR     Decode_Isolate0to7onD4
+            
+*---todo
+Group0010           *Immediate OP code: MOVE.L
+            JSR     ClearAllDn
+            MOVE.W  var_opcode_op,  D5
+*---Isolate next four bits
+            MOVE.W  D5,     D4
+            JSR     Decode_Isolate0to7onD4
+            
+*---todo
+Group0011           *Immediate OP code: MOVE.W
+            JSR     ClearAllDn
+            MOVE.W  var_opcode_op,  D5
+*---Isolate next four bits
+            MOVE.W  D5,     D4
+            JSR     Decode_Isolate0to7onD4
+            
+*---todo
+code0100Decode           *Immediate OP code: MOVEM, LEA, CLR, JSR, RTS
+            JSR     ClearAllDn
+            MOVE.W  var_opcode_op,  D5
+*---Isolate next four bits
+            MOVE.W  D5,     D4
+            JSR     Decode_Isolate0to7onD4
+        
+*---todo
+code0101Decode           *Immediate OP code: ADDQ
+            JSR     ClearAllDn
+            MOVE.W  var_opcode_op,  D5
+*---Isolate next four bits
+            MOVE.W  D5,     D4
+            JSR     Decode_Isolate0to7onD4
+        
+*---todo
+BranchGroup           *Immediate OP code: BCC, BGT, BLE, BVS, BRA
+            JSR     ClearAllDn
+            MOVE.W  var_opcode_op,  D5
+*---Isolate next four bits
+            MOVE.W  D5,     D4
+            JSR     Decode_Isolate0to7onD4
+        
+*---todo
+code0111Decode           *Immediate OP code: MOVEQ
+            JSR     ClearAllDn
+            MOVE.W  var_opcode_op,  D5
+*---Isolate next four bits
+            MOVE.W  D5,     D4
+            JSR     Decode_Isolate0to7onD4
+
+*---todo
+code1000Decode           *Immediate OP code: DIVS
+            JSR     ClearAllDn
+            MOVE.W  var_opcode_op,  D5
+*---Isolate next four bits
+            MOVE.W  D5,     D4
+            JSR     Decode_Isolate0to7onD4
+
+*---todo
+code1001Decode           *Immediate OP code: SUB, SUBA
+            JSR     ClearAllDn
+            MOVE.W  var_opcode_op,  D5
+*---Isolate next four bits
+            MOVE.W  D5,     D4
+            JSR     Decode_Isolate0to7onD4
+
+*---todo
+code1011Decode           *Immediate OP code: EOR, CMP, CMPA
+            JSR     ClearAllDn
+            MOVE.W  var_opcode_op,  D5
+*---Isolate next four bits
+            MOVE.W  D5,     D4
+            JSR     Decode_Isolate0to7onD4
+            
+*---todo
+code1100Decode           *Immediate OP code: MULS, AND
+            JSR     ClearAllDn
+            MOVE.W  var_opcode_op,  D5
+*---Isolate next four bits
+            MOVE.W  D5,     D4
+            JSR     Decode_Isolate0to7onD4
+            
+*---todo
+AddGroup           *Immediate OP code: ADD, ADDA
+            JSR     ClearAllDn
+            MOVE.W  var_opcode_op,  D5
+*---Isolate next four bits
+            MOVE.W  D5,     D4
+            JSR     Decode_Isolate0to7onD4            
+            
+*---todo
+BitShiftGroup       *Immediate OP code: LSR, LSL, ASR, ASL, ROR, ROL
+            JSR     ClearAllDn
+            MOVE.W  var_opcode_op,  D5
+*---Isolate next four bits
+            MOVE.W  D5,     D4
+            JSR     Decode_Isolate0to7onD4
+            
+*---todo
+outBadData           *No immediate op code
+            JSR     ClearAllDn
+            MOVE.W  var_opcode_op,  D5
+*---Isolate next four bits
+            MOVE.W  D5,     D4
+            JSR     Decode_Isolate0to7onD4
 
 *----------------------------------------------------------------
 *              END Op Code Decode Routines                      |
@@ -462,6 +573,7 @@ var_line_addr       DS.l    1
 var_output_buffer   DS.L    10
 
     END     START
+
 
 
 
