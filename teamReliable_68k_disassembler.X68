@@ -273,8 +273,12 @@ Group0000_ea
         LSL.B   #2,     D4
         LSR.B   #5,     D4
         MOVE.B  D4,     var_opcode_dest_mode
-
-Group0000_ea
+        
+        CLR     D4
+        MOVE.B  D5,     D4
+        LSL.B   #5,     D4
+        LSR.B   #5,     D4
+        MOVE.B  D4,     var_opcode_dest_reg
 
         jmp     end
         
