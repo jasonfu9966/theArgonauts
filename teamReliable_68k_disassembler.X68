@@ -31,6 +31,7 @@ START   JSR     ClearAll
         JSR     GetEndAddr
         JSR     LoadStartAddr
         JSR     MainLoop
+        JMP     GoAgain
         JMP     End
         
 *===Main Routines===*
@@ -51,8 +52,6 @@ ClearAllDn
         CLR.L   D6
         CLR.L   D7
         RTS
-
-LoadStackJump
         
 *----------------------------------------------------------------
 *              OpCode JUMP Table                                |
@@ -97,7 +96,7 @@ JmpTable
 *----------------------------------------------------------------
 
 code0000        JSR          Group0000      *Immediate Op's: CMPI, SUBI, ANDI, EORI, BCHG
-*               BRA          continueMain
+                BRA          DisplayToConsole
 
 code0001       *JSR          Group0001       *MOVE - Byte
 *               BRA          continueMain
@@ -180,6 +179,8 @@ GetEndAddr      *Used
 LoadStartAddr
         MOVE.L  var_start_addr, A5
         RTS
+        
+GoAgain
 
 *===Main Loop Routines===*
 
@@ -196,9 +197,12 @@ MainLoopCont
         JSR     Buffer_LoadBuffer
         JSR     Buffer_BufferAddress
         JSR     LoadOpCode
+        JSR     DisplayToConsole
+        JSR     UpdateNumDisplayed
+        BRA     MainLoop
 
 EndReached
-        *Go Again
+        RTS     *Go Again
         *Yes JMP START
         *No  JMP end
         
@@ -227,10 +231,31 @@ LoadOpCode
         LSR.W   D1,     D0
         MULU    #6,     D0
         JSR     0(A0,D0)
+        RTS
+
+DisplayToConsole
+        MOVE.B  #$00,               (A6)+
+        CLR.L   D1
+        MOVE.W  var_line_number,    D1
+        MOVE.B  #3,                 D0
+        TRAP    #15
+               
+        LEA     var_output_buffer,  A1
+        MOVE.B  #13,                D0
+        TRAP    #15
+        RTS
+        
+
+UpdateNumDisplayed
+        ADD.B   #1,     var_num_displayed
+        RTS
+        
         
 *----------------------------------------------------------------
 *              Op Code Decode Routines                          |
 *----------------------------------------------------------------
+
+*----------------Group0000
 
 Group0000   *Immediate Op's: CMPI, SUBI, ANDI, EORI, BCHG
         JSR     ClearAllDn
@@ -321,7 +346,8 @@ Group0000_PrintSwitch
         BEQ     EORI_Print
 
         jmp     error
-        
+
+*----------------Group0001
 *---todo
 Group0001           *Immediate OP code: MOVE.B
             JSR     ClearAllDn
@@ -329,7 +355,8 @@ Group0001           *Immediate OP code: MOVE.B
 *---Isolate next four bits
             MOVE.W  D5,     D4
             JSR     Decode_Isolate0to7onD4
-            
+
+*----------------Group0010
 *---todo
 Group0010           *Immediate OP code: MOVE.L
             JSR     ClearAllDn
@@ -337,7 +364,8 @@ Group0010           *Immediate OP code: MOVE.L
 *---Isolate next four bits
             MOVE.W  D5,     D4
             JSR     Decode_Isolate0to7onD4
-            
+
+*----------------Group0011
 *---todo
 Group0011           *Immediate OP code: MOVE.W
             JSR     ClearAllDn
@@ -345,7 +373,8 @@ Group0011           *Immediate OP code: MOVE.W
 *---Isolate next four bits
             MOVE.W  D5,     D4
             JSR     Decode_Isolate0to7onD4
-            
+
+*----------------Group0100
 *---todo
 code0100Decode           *Immediate OP code: MOVEM, LEA, CLR, JSR, RTS
             JSR     ClearAllDn
@@ -353,7 +382,8 @@ code0100Decode           *Immediate OP code: MOVEM, LEA, CLR, JSR, RTS
 *---Isolate next four bits
             MOVE.W  D5,     D4
             JSR     Decode_Isolate0to7onD4
-        
+
+*----------------Group0101
 *---todo
 code0101Decode           *Immediate OP code: ADDQ
             JSR     ClearAllDn
@@ -361,15 +391,17 @@ code0101Decode           *Immediate OP code: ADDQ
 *---Isolate next four bits
             MOVE.W  D5,     D4
             JSR     Decode_Isolate0to7onD4
-        
+
+*----------------Group0110
 *---todo
-BranchGroup           *Immediate OP code: BCC, BGT, BLE, BVS, BRA
+code0110Decode           *Immediate OP code: BCC, BGT, BLE, BVS, BRA
             JSR     ClearAllDn
             MOVE.W  var_opcode_op,  D5
 *---Isolate next four bits
             MOVE.W  D5,     D4
             JSR     Decode_Isolate0to7onD4
-        
+
+*----------------Group01111
 *---todo
 code0111Decode           *Immediate OP code: MOVEQ
             JSR     ClearAllDn
@@ -378,6 +410,7 @@ code0111Decode           *Immediate OP code: MOVEQ
             MOVE.W  D5,     D4
             JSR     Decode_Isolate0to7onD4
 
+*----------------Group1000
 *---todo
 code1000Decode           *Immediate OP code: DIVS
             JSR     ClearAllDn
@@ -386,6 +419,7 @@ code1000Decode           *Immediate OP code: DIVS
             MOVE.W  D5,     D4
             JSR     Decode_Isolate0to7onD4
 
+*----------------Group1001
 *---todo
 code1001Decode           *Immediate OP code: SUB, SUBA
             JSR     ClearAllDn
@@ -394,6 +428,7 @@ code1001Decode           *Immediate OP code: SUB, SUBA
             MOVE.W  D5,     D4
             JSR     Decode_Isolate0to7onD4
 
+*----------------Group1011
 *---todo
 code1011Decode           *Immediate OP code: EOR, CMP, CMPA
             JSR     ClearAllDn
@@ -401,7 +436,8 @@ code1011Decode           *Immediate OP code: EOR, CMP, CMPA
 *---Isolate next four bits
             MOVE.W  D5,     D4
             JSR     Decode_Isolate0to7onD4
-            
+
+*----------------Group1100
 *---todo
 code1100Decode           *Immediate OP code: MULS, AND
             JSR     ClearAllDn
@@ -409,7 +445,8 @@ code1100Decode           *Immediate OP code: MULS, AND
 *---Isolate next four bits
             MOVE.W  D5,     D4
             JSR     Decode_Isolate0to7onD4
-            
+
+*----------------Group1101
 *---todo
 AddGroup           *Immediate OP code: ADD, ADDA
             JSR     ClearAllDn
@@ -417,7 +454,8 @@ AddGroup           *Immediate OP code: ADD, ADDA
 *---Isolate next four bits
             MOVE.W  D5,     D4
             JSR     Decode_Isolate0to7onD4            
-            
+
+*----------------Group1110
 *---todo
 BitShiftGroup       *Immediate OP code: LSR, LSL, ASR, ASL, ROR, ROL
             JSR     ClearAllDn
@@ -425,7 +463,8 @@ BitShiftGroup       *Immediate OP code: LSR, LSL, ASR, ASL, ROR, ROL
 *---Isolate next four bits
             MOVE.W  D5,     D4
             JSR     Decode_Isolate0to7onD4
-            
+
+*----------------Group1111
 *---todo
 outBadData           *No immediate op code
             JSR     ClearAllDn
@@ -456,6 +495,12 @@ EORI_Print
         JSR     Buffer_ORI
         JSR     Buffer_OpCode_Size
         JSR     Buffer_GetIDataBySize
+        JSR     BufferComma
+        JSR     BufferSpace
+        MOVE.W  var_opcode_dest_mode,   D2  *used in CompareMode
+        MOVE.W  var_opcode_dest_reg,    D3  *used in CompareXn
+        JSR     Buffer_CompareMode
+        RTS
 
 CMPI_Print
 
@@ -489,6 +534,11 @@ Buffer_GetIDataBySize
         MOVE.W      var_opcode_size,    D1
         CMPI.B      #0,                 D1
         BEQ         Buffer_GetByte
+        CMPI.B      #1,                 D1
+        BEQ         Buffer_GetWord
+        CMPI.B      #2,                 D1
+        BEQ         Buffer_GetLong
+        RTS
         
 *----------------------------------------------------------------
 *              EA Component Buffer Helper Routines              |
@@ -521,7 +571,142 @@ Buffer_GetLong
         JSR         HexToChar
         RTS
 
-*===Helper Routines===*
+*--Mode Comparision Routines--*
+
+Buffer_CompareMode     
+        CMPI.B  #%000,          D2      *last three are zeroes
+        BEQ     Buffer_Mode_DataReg     *jump to subroutine for Data register Source
+        BNE     ModeCompare1
+
+ModeCompare1
+        CMPI.B  #%001,          D2
+        BEQ     Buffer_Mode_AddrReg
+        BNE     ModeCompare2
+
+ModeCompare2
+        CMPI.B  #%010,          D2
+        BEQ     Buffer_Mode_AddrIndr
+        BNE     ModeCompare3
+
+ModeCompare3
+        CMPI.B  #%011,          D2
+        BEQ     Buffer_Mode_AddrPost
+        BNE     ModeCompare4
+
+ModeCompare4
+        CMPI.B  #%100,          D2
+        BEQ     Buffer_Mode_AddrPre
+        BNE     ModeCompare7
+                
+ModeCompare7
+        CMPI.B  #%111,          D2
+        BEQ     Buffer_CompareXn
+        BNE     error
+
+*--Xn Comparision Routines--*
+
+Buffer_CompareXn
+        CMPI.B  #%000,          D3
+        BEQ     Buffer_GetWord
+        BNE     XnCompare1
+
+XnCompare1
+        CMPI.B  #%001,          D3
+        BEQ     Buffer_GetLong
+        BNE     XnCompare5
+        
+XnCompare5
+        CMPI.B  #100,           D3
+        BEQ     Buffer_GetImmediate
+        BNE     error
+        
+*--Immediate Data--*
+
+Buffer_GetImmediate
+        JSR     BufferHash
+        CMPI.B  #4,             var_opcode_typeid
+        BLT     ImmediateData_TypeMove
+        
+        CMPI.B  #1,             var_opcode_sizebits
+        BEQ     ImmediateData_TypeSize1
+        
+        CMPI.B  #2,             var_opcode_sizebits
+        BEQ     ImmediateData_TypeSize2
+        BRA     error
+        
+ImmediateData_TypeMove
+        MOVE.W  var_opcode_size,    D4
+        CMPI.B  #%01,               D4
+        BEQ     Buffer_GetByte
+        CMPI.B  #%11,               D4
+        BEQ     Buffer_GetWord
+        CMPI.B  #%10,               D4
+        BEQ     Buffer_GetLong
+        BRA     error
+        
+ImmediateData_TypeSize1
+        MOVE.W  var_opcode_size,    D4
+        CMPI.B  #%0,                D4
+        BEQ     Buffer_GetWord
+        CMPI.B  #%1,                D4
+        BEQ     Buffer_GetLong
+        BRA     error
+        
+ImmediateData_TypeSize2
+        MOVE.W  var_opcode_size,    D4
+        CMPI.B  #%00,               D4
+        BEQ     Buffer_GetByte
+        CMPI.B  #%10,               D4
+        BEQ     Buffer_GetWord
+        CMPI.B  #%11,               D4
+        BEQ     Buffer_GetLong
+        BRA     error
+        
+*----------------------------------------------------------------
+*              Buffer Load Routines                             |
+*----------------------------------------------------------------
+
+*==Mode Loads==*
+
+*--Data Reg--*
+
+Buffer_Mode_DataReg
+        JSR     BufferDataReg
+        JSR     HexToChar_NumOrLetter
+        RTS     
+
+Buffer_Mode_AddrReg
+        JSR     BufferAddrReg
+        JSR     HexToChar_NumOrLetter
+        RTS
+
+Buffer_Mode_AddrIndr
+        JSR     BufferParenLeft
+        JSR     BufferAddrReg
+        JSR     HexToChar_NumOrLetter
+        JSR     BufferParenRight
+        RTS
+
+Buffer_Mode_AddrPost
+        JSR     BufferParenLeft
+        JSR     BufferAddrReg
+        JSR     HexToChar_NumOrLetter
+        JSR     BufferParenRight
+        JSR     BufferSignPlus
+        RTS
+
+Buffer_Mode_AddrPre
+        JSR     BufferSignMinus
+        JSR     BufferParenLeft
+        JSR     BufferAddrReg
+        JSR     HexToChar_NumOrLetter
+        JSR     BufferParenRight
+        RTS
+
+
+*----------------------------------------------------------------
+*              Global Buffer Helper Routines                    |
+*----------------------------------------------------------------
 
 *--Helper: DisplayMsg--*
 
@@ -646,7 +831,21 @@ Buffer_BufferAddress
         JSR     BufferTab
         RTS
 
-*--Helper: Character Routines--*
+*----------------------------------------------------------------
+*              Buffer Ascii Load Routines                       |
+*----------------------------------------------------------------
+
+*--Modes--*
+
+BufferDataReg
+        MOVE.B  #$44,   (A6)+
+        RTS
+        
+BufferAddrReg
+        MOVE.B  #$41,   (A6)+
+        RTS
+
+*--Character Routines--*
 
 BufferTab
         MOVE.B  #$9,    (A6)+
@@ -659,11 +858,43 @@ BufferHash
 BufferDollar
         MOVE.B  #$24,   (A6)+
         RTS
+        
+BufferComma
+        MOVE.B  #$2C,   (A6)+
+        RTS
+
+BufferSpace
+        MOVE.B  #$20,   (A6)+
+        RTS
+        
+BufferParenLeft
+        MOVE.B  #$41,   (A6)+
+        RTS
+
+BufferParenRight
+        MOVE.B  #$29,   (A6)+
+        RTS
+
+BufferSignPlus
+        MOVE.B  #$2B,   (A6)+
+        RTS
+
+BufferSignMinus
+        MOVE.B  #$2D,   (A6)+
+        RTS
+
+*----------------------------------------------------------------
+*              End and Error                                    |
+*----------------------------------------------------------------
 
 error   NOP *Add: Print error msg
 end     NOP
 
     SIMHALT             ; halt simulator
+
+*----------------------------------------------------------------
+*              Variables and Constants                          |
+*----------------------------------------------------------------
 
 *---Variables/Constants--*
 
@@ -677,9 +908,12 @@ msg_continue_request    DC.B    'Hit any key to continue',0
 var_start_addr  DS.L    1
 var_end_addr    DS.L    1
 
-var_opcode_addr DS.L    1
-var_opcode_op   DS.W    1
-var_opcode_size DS.B    1
+var_opcode_typeid   DS.W    1
+
+var_opcode_addr         DS.L    1
+var_opcode_op           DS.W    1
+var_opcode_sizebits     DS.W    1
+var_opcode_size         DS.B    1
 var_opcode_src_mode     DS.B    1
 var_opcode_src_reg      DS.B    1
 var_opcode_dest_mode    DS.B    1
@@ -690,7 +924,8 @@ var_decode_length   DS.B    1
 
 var_num_displayed   DS.W    1
 
-var_line_addr       DS.l    1
+var_line_addr       DS.L    1
+var_line_number     DS.W    1
 var_output_buffer   DS.L    10
 
     END     START
@@ -708,6 +943,8 @@ var_output_buffer   DS.L    10
 
 
 =======
+
+
 
 
 *~Font name~Courier New~
