@@ -6,7 +6,7 @@
 *-----------------------------------------------------------
     ORG    $5000
 START:                  ; first instruction of program
-    BCHG    D0,  D1
+    BCHG.B    d5,  $7000
     *ANDI.W  #$1111, D4
 
 * Put program code here
@@ -16,6 +16,7 @@ START:                  ; first instruction of program
 * Put variables and constants here
 
     END    START        ; last line of source
+
 
 
 *~Font name~Courier New~

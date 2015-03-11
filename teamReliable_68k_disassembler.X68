@@ -159,7 +159,7 @@ GetStartAddr    *Used:  A1, D2, D6
         JSR     Helper_DisplayMsg
         LEA     var_start_addr,     A1
         JSR     Helper_GetInput
-        JSR     Helper_CharToHex
+        JSR     CharToHex
         CLR.L   var_start_addr
         MOVE.L  D4,                 var_start_addr
         CLR     D4
@@ -171,7 +171,7 @@ GetEndAddr      *Used
         JSR     Helper_DisplayMsg
         LEA     var_end_addr,       A1
         JSR     Helper_GetInput
-        JSR     Helper_CharToHex
+        JSR     CharToHex
         CLR.L   var_end_addr
         MOVE.L  D4,                 var_end_addr
         CLR     D4
@@ -242,21 +242,19 @@ Group0000   *Immediate Op's: CMPI, SUBI, ANDI, EORI, BCHG
         BSET    #3,     D4
         BVS     Group0000_BCHG_dn
         BRA     Group0000_cont
+
 Group0000_BCHG_dn
 *--Isolate size (bit #0 to #2, byte size)
         LSR.W   #1,     D4
         MOVE.B  D4,     var_opcode_src_reg
-*Setsize? (Long only)
-*MOVE.B  #%00000010, var_opcode_size
-        BRA     Group0000_ea
+        BRA     Group0000_BCHG_ea
         
 Group0000_cont
 *--Is it a BCHG?
         CMP.W   #8,     D4
         BNE     Group0000_IOps_size
-*Setsize? (Byte only)
-*MOVE.B  #%00000000, var_opcode_size
-        BRA     Group0000_ea
+        JSR     Group0000_BCHG_ea
+        BRA     BCHG_Print
    
 Group0000_IOps_size
 *--Isolate size (bit #8-#9)
@@ -264,39 +262,153 @@ Group0000_IOps_size
         MOVE.B  D5,     D4
         LSR     #6,     D4
         MOVE.B  D4,     var_opcode_size
-        BRA     Group0000_ea
+        JSR     Group0000_IOps_ea
+        BRA     Group0000_PrintSwitch
 
-Group0000_ea
+Group0000_BCHG_ea
+*--Isolate BCHG dest mode
+        CLR     D4
+        MOVE.B  D5,     D4
+        LSL.B   #2,     D4
+        LSR.B   #5,     D4
+        MOVE.B  D4,     var_opcode_dest_mode
+        JSR     Group0000_BCHG_SizeCheck
+*--Isolate BCHG dest register
+        CLR     D4
+        MOVE.B  D5,     D4
+        LSL.B   #5,     D4
+        LSR.B   #5,     D4
+        MOVE.B  D4,     var_opcode_dest_reg
+        RTS
+        
+Group0000_IOps_ea
 *--Isolate EA dest mode
         CLR     D4
         MOVE.B  D5,     D4
         LSL.B   #2,     D4
         LSR.B   #5,     D4
         MOVE.B  D4,     var_opcode_dest_mode
-        
+*--Isolate EA dest register
         CLR     D4
         MOVE.B  D5,     D4
         LSL.B   #5,     D4
         LSR.B   #5,     D4
         MOVE.B  D4,     var_opcode_dest_reg
+        RTS
+        
+Group0000_BCHG_SizeCheck
+        CMPI.B  #%00000000, D4
+        BEQ     BCHG_IsLong
+        BRA     BCHG_IsByte
+BCHG_IsLong
+        MOVE.B  #%00000010, var_opcode_size
+        RTS
+BCHG_IsByte
+        MOVE.B  #%00000000, var_opcode_size
+        RTS
 
-        jmp     end
+Group0000_PrintSwitch
+        CLR     D4
+        MOVE.B  D5,     D4
+        LSR.W   #8,     D4
+        CMPI.W  #%00001100, D4
+        BEQ     CMPI_Print
+        CMPI.W  #%00000010, D4
+        BEQ     ANDI_Print
+        CMPI.W  #%00000100, D4
+        BEQ     SUBI_Print
+        CMPI.W  #%00001010, D4
+        BEQ     EORI_Print
+
+        jmp     error
         
 
 *----------------------------------------------------------------
-*              END Op Code Decode Routines                      |
-*----------------------------------------------------------------
-
-*----------------------------------------------------------------
-*              END Op Code Decode Helper Routines               |
+*              Op Code Decode Helper Routines                   |
 *----------------------------------------------------------------
 
 Decode_Isolate0to7onD4
         LSR.W   #8,     D4
         RTS
         
+*----------------------------------------------------------------
+*              Op Code Decode Print Routines                    |
+*----------------------------------------------------------------
+
+BCHG_Print
+
+SUBI_Print
         
+ANDI_Print
+
+EORI_Print
+        JSR     Buffer_ORI
+        JSR     Buffer_OpCode_Size
+        JSR     Buffer_GetIDataBySize
+
+CMPI_Print
+
+
+*----------------------------------------------------------------
+*              Op Code Name Buffer Routines                     |
+*----------------------------------------------------------------
+
+Buffer_ORI
+        MOVE.B      #$4F, (A6)+
+        MOVE.B      #$52, (A6)+
+        MOVE.B      #$49, (A6)+
+        RTS
         
+*----------------------------------------------------------------
+*              Op Code Component Buffer Routines                |
+*----------------------------------------------------------------
+
+Buffer_OpCode_Size
+        MOVE.B      #$4F, (A6)+
+        MOVE.B      #$52, (A6)+
+        MOVE.B      #$49, (A6)+
+        RTS
+
+*----------------------------------------------------------------
+*              Op Code Component Buffer Helper Routines         |
+*----------------------------------------------------------------
+
+Buffer_GetIDataBySize
+        JSR         BufferHash
+        MOVE.W      var_opcode_size,    D1
+        CMPI.B      #0,                 D1
+        BEQ         Buffer_GetByte
+        
+*----------------------------------------------------------------
+*              EA Component Buffer Helper Routines              |
+*----------------------------------------------------------------
+
+Buffer_GetByte
+        JSR         BufferDollar
+        MOVE.W      (A5)+,              D5
+        MOVE.B      #2,                 var_decode_length
+        MOVE.B      #24,                D3
+        LSL.L       D3,                 D4
+        JSR         HexToChar
+        RTS
+
+Buffer_GetWord
+        JSR         BufferDollar
+        MOVE.W      (A5)+,              D5
+        MOVE.B      #4,                 var_decode_length
+        MOVE.B      #24,                D3
+        LSL.L       D3,                 D4
+        JSR         HexToChar
+        RTS
+        
+Buffer_GetLong
+        JSR         BufferDollar
+        MOVE.L      (A5)+,              D5
+        MOVE.B      #8,                 var_decode_length
+        MOVE.B      #24,                D3
+        LSL.L       D3,                 D4
+        JSR         HexToChar
+        RTS
 
 *===Helper Routines===*
 
@@ -318,7 +430,7 @@ Helper_GetInput
 
 *--Helper: CharToHex--*
 
-Helper_CharToHex
+CharToHex
         
         CLR     D6
         JSR     CharToHex_Loop
@@ -370,7 +482,7 @@ CharToHex_Done
         
 *--Helper: HexToChar--*
 
-Helper_HexToChar
+HexToChar
         CLR.B   var_decode_counter
         JMP     HexToChar_Loop
 
@@ -419,14 +531,22 @@ Buffer_BufferAddress
         JSR     LoadLineAddr
         MOVE.L  var_line_addr,  D5        
         MOVE.B  #8,     var_decode_length
-        JSR     Helper_HexToChar
-        JSR     Helper_BufferTab
+        JSR     HexToChar
+        JSR     BufferTab
         RTS
 
 *--Helper: Character Routines--*
 
-Helper_BufferTab
+BufferTab
         MOVE.B  #$9,    (A6)+
+        RTS
+        
+BufferHash
+        MOVE.B  #$23,   (A6)+
+        RTS
+        
+BufferDollar
+        MOVE.B  #$24,   (A6)+
         RTS
 
 error   NOP *Add: Print error msg
@@ -449,6 +569,7 @@ var_end_addr    DS.L    1
 var_opcode_addr DS.L    1
 var_opcode_op   DS.W    1
 var_opcode_size DS.B    1
+var_opcode_src_mode     DS.B    1
 var_opcode_src_reg      DS.B    1
 var_opcode_dest_mode    DS.B    1
 var_opcode_dest_reg     DS.B    1
@@ -462,6 +583,8 @@ var_line_addr       DS.l    1
 var_output_buffer   DS.L    10
 
     END     START
+
+
 
 
 
