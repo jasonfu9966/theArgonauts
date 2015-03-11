@@ -330,6 +330,7 @@ Group0001           *Immediate OP code: MOVE.B
             MOVE.W  D5,     D4
             JSR     Decode_Isolate0to7onD4
             
+            
 *---todo
 Group0010           *Immediate OP code: MOVE.L
             JSR     ClearAllDn
@@ -440,6 +441,77 @@ outBadData           *No immediate op code
 
 Decode_Isolate0to7onD4
         LSR.W   #8,     D4
+        RTS
+        
+Decode_WordtoHex               ;note: determines hex from first three bits
+        MOVE.B   D4, D3
+        BSET     #0, D3
+        BVS      Bit1XX
+        BRA      Bit0XX
+        
+Bit1XX
+        BSET     #1, D3
+        BVS      Bit11X
+        BRA      Bit10X
+        
+Bit0XX
+        BSET     #1, D3
+        BVS      Bit01X
+        BRA      Bit00X
+        
+Bit11X
+        BSET     #2, D3
+        BVS      Bit111
+        BRA      Bit110
+        
+Bit10X
+        BSET     #2, D3
+        BVS      Bit101
+        BRA      Bit100
+        
+Bit01X
+        BSET     #2, D3
+        BVS      Bit011
+        BRA      Bit010
+        
+Bit00X
+        BSET     #2, D3
+        BVS      Bit001
+        BRA      Bit000
+        
+* Bit000, Bit001, Bit010, Bit011, Bit100, Bit101, Bit110, Bit111
+* append the appropriate decimal number to output
+;==============================================================================
+Bit000
+        * append #0
+        RTS
+        
+Bit001
+        * append #1
+        RTS
+
+Bit010
+        * append #2
+        RTS
+
+Bit011
+        * append #3
+        RTS
+        
+Bit100
+        * append #4
+        RTS
+        
+Bit101
+        * append #5
+        RTS
+        
+Bit110
+        * append #6
+        RTS
+        
+Bit111
+        * append #7
         RTS
         
 *----------------------------------------------------------------
@@ -708,6 +780,7 @@ var_output_buffer   DS.L    10
 
 
 =======
+
 
 
 *~Font name~Courier New~
