@@ -381,7 +381,11 @@ Group0000_CheckEAMode
         MOVE.B  var_opcode_src_mode,    D1
         CMPI.B  #0,                     D1
         BEQ     Buffer_GetIDataBySize
-        BNE     BufferDataReg
+        BNE     Group0000_Buffer_Src_Reg_Prep
+        
+Group0000_Buffer_Src_Reg_Prep
+        JSR     Buffer_PrepareSrcReg_OnD4
+        JMP     Buffer_Mode_DataReg
 
 *----------------Group0001
 *---todo
@@ -1033,6 +1037,16 @@ Buffer_BufferAddress
         JSR     HexToChar
         JSR     BufferTab
         RTS
+        
+Buffer_PrepareSrcReg_OnD4
+        CLR     D4
+        MOVE.B  var_opcode_src_reg,    D4
+        RTS
+        
+Buffer_PrepareDestReg_OnD4
+        CLR     D4
+        MOVE.B  var_opcode_dest_reg,    D4
+        RTS
 
 *----------------------------------------------------------------
 *              Buffer Ascii Load Routines                       |
@@ -1071,7 +1085,7 @@ BufferSpace
         RTS
         
 BufferParenLeft
-        MOVE.B  #$41,   (A6)+
+        MOVE.B  #$28,   (A6)+
         RTS
 
 BufferParenRight
