@@ -1034,12 +1034,11 @@ end     NOP
 
 *---Variables/Constants--*
 
-msg_intro           DC.B    'Welcome to the 68k Dissesembler.',LF,CR,0
-msg_start_request   DC.B    'Please enter an starting address: ',CR,0
-msg_end_request     DC.B    'Please enter an ending address: ',CR,0
-msg_continue_request    DC.B    'Hit any key to continue',0
-msg_goagain_request     DC.B    'Would you like to dissassemble a new location?',0
-                        DC.B    'Type (y)es or (n)o and hit "Enter"',CR,0
+msg_intro           DC.B    'Welcome to the 68k Disassembler.',LF,CR,0
+msg_start_request   DC.B    'Please enter an starting address: ',LF,CR,0
+msg_end_request     DC.B    'Please enter an ending address: ',LF,CR,0
+msg_continue_request    DC.B    'Hit any key to continue...',0
+msg_goagain_request     DC.B    'Would you like to start over? (y/n) ',LF,CR,0
 msg_thanks              DC.B    'Thanks for using the TeamReliable Disassembler',0
 msg_blank               DC.B    '',CR,LF,0
 
@@ -1084,6 +1083,7 @@ var_output_buffer   DS.L    10
 
 
 =======
+
 
 
 
