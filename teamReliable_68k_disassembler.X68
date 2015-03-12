@@ -32,7 +32,7 @@ START   JSR     ClearAll
         JSR     PrintBlankLine
         JSR     LoadStartAddr
         JSR     MainLoop
-        JMP     GoAgain
+        *JMP     GoAgain
         JMP     error
         
 *===Main Routines===*
@@ -220,7 +220,8 @@ MainLoopCont
         BRA     MainLoop
 
 EndReached
-        RTS     *Go Again
+        JMP     GoAgain
+        *RTS     *Go Again
         *Yes JMP START
         *No  JMP end
         
@@ -236,6 +237,9 @@ DisplayedTenLinesYet
         LEA     msg_continue_request,   A1
         JSR     Helper_DisplayMsg
         CLR.B   var_num_displayed
+        JSR     Helper_GetAsciiInput
+        JMP     MainLoop
+        
 LessThanTenLines
         RTS
 

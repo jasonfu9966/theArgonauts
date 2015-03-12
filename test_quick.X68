@@ -4,7 +4,7 @@
 * Date       :
 * Description:
 *-----------------------------------------------------------
-    ORG    $5000
+    ORG    $5000        ; end: 5081
 START:                  ; first instruction of program
     BCHG    #$20,(A1)
     BCHG    D1, (A4)+
@@ -51,6 +51,7 @@ START:                  ; first instruction of program
 * Put variables and constants here
 
     END    START        ; last line of source
+
 
 
 
