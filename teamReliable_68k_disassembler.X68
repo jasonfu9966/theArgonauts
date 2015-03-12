@@ -301,6 +301,9 @@ Group0000_BCHG_dn
         
 Group0000_cont
         *--Is it a BCHG?
+        CLR     D4
+        MOVE.W  D5,     D4
+        JSR     Decode_Isolate0to7onD4
         CMP.W   #8,     D4
         BNE     Group0000_IOps_size
         MOVE.B  #0,     var_opcode_src_mode
@@ -512,7 +515,11 @@ outBadData           *No immediate op code
 *----------------------------------------------------------------
 
 Decode_Isolate0to7onD4
-        LSR.W   #8,     D4
+        LSL.W   #4,         D4
+        CLR     D0
+        MOVE.W  #SHIFT12,   D0
+        LSR.W   D0,         D4
+        CLR     D0
         RTS
         
 Decode_WordtoHex               ;note: determines hex from first three bits
@@ -1131,6 +1138,7 @@ var_line_number     DS.W    1
 var_output_buffer   DS.L    10
 
     END     START
+
 
 
 
