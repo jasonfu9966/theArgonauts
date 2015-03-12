@@ -18,31 +18,45 @@ START:                  ; first instruction of program
     BCHG.B  #$23,(A5)
     BCHG    #$F0,(A6)
     BCHG    #$1234,(A1)
-*
-*    ANDI    #%10000111,D7
-*    ANDI    #$FE00,$1234
-*    ANDI.B  #$F0,(A2)+
-*    ANDI.w  #$F0,-(A2) 
-*    ANDI.L  #$F0,(A2)
-*    ANDI    #$F0,(A2)
-*    ANDI    #$1234,(A2)
-*    
-*    SUBI.B  #1,D1
-*    SUBI.B  #1,$1234
-*    SUBI.W  #1,$1234
-*    SUBI.W  #1,D1
-*    SUBI.W  #$1,D1
-*    SUBI.W  #1, $1234
-*    SUBI.L  #$1, $1234
-*
-*
-*    EORI    #%10000111,D7
-*    EORI    #$FE00,$1234
-*    EORI.B  #$F0,(A2)+
-*    EORI.w  #$F0,-(A2) 
-*    EORI.L  #$F0,(A2)
-*    EORI    #$F0,(A2)
-*    EORI    #$123,(A2) 
+	MOVE.B  D0, D3
+	MOVE.B  (A0),D3
+	MOVE.B  (A0)+,D3
+	MOVE.B  -(A0),D3
+	MOVE.B  #2, D3
+	MOVE.B  $3333, D3
+	MOVE.B  $44444444, D3
+	MOVE.B  D0, $3333
+	MOVE.B  D0, $44444444
+	MOVE.B  D0, (A3)
+	MOVE.B  D0, (A3)+
+	MOVE.B  D0, -(A3)
+	
+	MOVE.W  D0, D3
+	MOVE.W  (A0),D3
+	MOVE.W  (A0)+,D3
+	MOVE.W  -(A0),D3
+	MOVE.W  #2, D3
+	MOVE.W  $3333, D3
+	MOVE.W  $44444444, D3
+	MOVE.W  D0, $3333
+	MOVE.W  D0, $44444444
+	MOVE.W  D0, A3
+	MOVE.W  D0,    (A3)
+	MOVE.W  D0, (A3)+
+	MOVE.W  D0, -(A3)
+	
+	MOVE.L  D0, D3
+	MOVE.L  (A0),D3
+	MOVE.L  (A0)+,D3
+	MOVE.L  -(A0),D3
+	MOVE.L  $3333, D3
+	MOVE.L  $44444444, D3
+	MOVE.L  D0, $3333
+	MOVE.L  D0, $44444444
+	MOVE.L  D0, A3
+	MOVE.L  D0,    (A3)
+	MOVE.L  D0, (A3)+
+	MOVE.L  D0, -(A3)    
 
 * Put program code here
 
@@ -51,6 +65,7 @@ START:                  ; first instruction of program
 * Put variables and constants here
 
     END    START        ; last line of source
+
 
 
 
