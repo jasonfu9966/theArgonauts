@@ -992,31 +992,31 @@ HexToChar
 HexToChar_Loop
         ADDI.B  #1, var_decode_counter
         ROL.L   #4, D5
-        MOVE.B  D5, D4
-        LSL.B   #4, D4
-        LSR.B   #4, D4
+        MOVE.B  D5, D3
+        LSL.B   #4, D3
+        LSR.B   #4, D3
         JSR     HexToChar_NumOrLetter
         MOVE.B  var_decode_length,  D1
         CMP.B   var_decode_counter, D1
         BNE     HexToChar_Loop
         CLR     D1
-        CLR     D4
+        CLR     D3
         CLR     D5
         RTS
         
 HexToChar_NumOrLetter
-        CMPI.B  #%1010, D4
+        CMPI.B  #%1010, D3
         BGE     HexToChar_Letter
         BLT     HexToChar_Number
         
 HexToChar_Letter
-        ADDI.B  #$37,   D4
-        MOVE.B  D4,     (A6)+
+        ADDI.B  #$37,   D3
+        MOVE.B  D3,     (A6)+
         RTS
 
 HexToChar_Number
-        ADDI.B  #$30,   D4
-        MOVE.B  D4,     (A6)+
+        ADDI.B  #$30,   D3
+        MOVE.B  D3,     (A6)+
         RTS
         
         
@@ -1151,6 +1151,7 @@ var_line_number     DS.W    1
 var_output_buffer   DS.L    10
 
     END     START
+
 
 
 
