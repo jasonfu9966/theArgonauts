@@ -31,8 +31,7 @@ START   JSR     ClearAll
         JSR     GetEndAddr
         JSR     PrintBlankLine
         JSR     LoadStartAddr
-        JSR     MainLoop
-        *JMP     GoAgain
+        JMP     MainLoop
         JMP     error
         
 *===Main Routines===*
@@ -215,15 +214,11 @@ MainLoopCont
         JSR     Buffer_LoadBuffer
         JSR     Buffer_BufferAddress
         JSR     LoadOpCode
-        *JSR     DisplayToConsole
         JSR     UpdateNumDisplayed
-        BRA     MainLoop
+        JMP     MainLoop
 
 EndReached
         JMP     GoAgain
-        *RTS     *Go Again
-        *Yes JMP START
-        *No  JMP end
         
 *===Main Loop Sub-Routines===*
 
@@ -238,7 +233,7 @@ DisplayedTenLinesYet
         JSR     Helper_DisplayMsg
         CLR.B   var_num_displayed
         JSR     Helper_GetAsciiInput
-        JMP     MainLoop
+        RTS
         
 LessThanTenLines
         RTS
@@ -266,7 +261,7 @@ DisplayToConsole
         LEA     var_output_buffer,  A1
         MOVE.B  #13,                D0
         TRAP    #15
-        JSR     PrintBlankLine
+*        JSR     PrintBlankLine
         RTS
         
 
@@ -1142,6 +1137,7 @@ var_line_number     DS.W    1
 var_output_buffer   DS.L    10
 
     END     START
+
 
 
 
