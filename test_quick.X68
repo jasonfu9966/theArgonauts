@@ -9,15 +9,15 @@ START:                  ; first instruction of program
     BCHG    #$20,(A1)
     BCHG    D1, (A4)+
     BCHG    D4,D3
-*    BCHG    D3,-(A3)
-*    BCHG    #$0293,-(A3)
-*    BCHG.L  #%11,D4
-*    BCHG.B  #$00FE,$1334
-*    BCHG.B  #$F0,(A2)+
-*    BCHG.B  #$F3,-(A2) 
-*    BCHG.B  #$23,(A5)
-*    BCHG    #$F0,(A6)
-*    BCHG    #$1234,(A1)
+    BCHG    D3,-(A3)
+    BCHG    #$0293,-(A3)
+    BCHG.L  #%11,D4
+    BCHG.B  #$00FE,$1334
+    BCHG.B  #$F0,(A2)+
+    BCHG.B  #$F3,-(A2) 
+    BCHG.B  #$23,(A5)
+    BCHG    #$F0,(A6)
+    BCHG    #$1234,(A1)
 *
 *    ANDI    #%10000111,D7
 *    ANDI    #$FE00,$1234
