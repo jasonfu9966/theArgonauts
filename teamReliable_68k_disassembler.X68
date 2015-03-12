@@ -664,20 +664,20 @@ CMPI_Print
 
 Buffer_BCHG
         MOVE.B      #$42,   (A6)+
-        MOVE.B      #$54,   (A6)+
-        MOVE.B      #$53,   (A6)+
-        MOVE.B      #$54,   (A6)+
+        MOVE.B      #$43,   (A6)+
+        MOVE.B      #$48,   (A6)+
+        MOVE.B      #$47,   (A6)+
         RTS
 
 Buffer_EORI
-        JSR         Buffer_ORI
+        JSR         Buffer_EOR
         MOVE.B      #$49,   (A6)+
         RTS
 
-Buffer_ORI
+Buffer_EOR
+        MOVE.B      #$45,   (A6)+
         MOVE.B      #$4F,   (A6)+
         MOVE.B      #$52,   (A6)+
-        MOVE.B      #$49,   (A6)+
         RTS
         
 Buffer_CMPI
@@ -715,7 +715,7 @@ Buffer_SUB
 *              Op Code Component Buffer Routines                |
 *----------------------------------------------------------------
 
-Buffer_OpCode_Size
+Buffer_OpCode_Size                              ; ?? This displays "ORI"
         MOVE.B      #$4F, (A6)+
         MOVE.B      #$52, (A6)+
         MOVE.B      #$49, (A6)+
@@ -1138,6 +1138,7 @@ var_line_number     DS.W    1
 var_output_buffer   DS.L    10
 
     END     START
+
 
 
 
