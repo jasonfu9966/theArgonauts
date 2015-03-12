@@ -183,6 +183,8 @@ GoAgain
         LEA     msg_goagain_request,    A1
         JSR     Helper_DisplayMsg
         JSR     Helper_GetAsciiInput
+        JSR     PrintBlankLine
+        JSR     PrintBlankLine
         CMP.B   #$79,                   D1
         BEQ     GoAgain_Yes
         CMP.B   #$6E,                   D1
@@ -269,8 +271,8 @@ UpdateNumDisplayed
         RTS
         
 PrintBlankLine
-        *LEA     msg_blank,          A1
-        *JSR     Helper_DisplayMsg
+        LEA     msg_blank,          A1
+        JSR     Helper_DisplayMsg
         RTS
         
 *----------------------------------------------------------------
@@ -1093,14 +1095,15 @@ end     NOP
 
 *---Variables/Constants--*
 
-msg_intro           DC.B    'Welcome to the 68k Disassembler.',LF,CR,0
-msg_start_request   DC.B    'Please enter an starting address: ',LF,CR,0
-msg_end_request     DC.B    'Please enter an ending address: ',LF,CR,0
+msg_intro           DC.B    'Welcome to the 68k Disassembler.',0
+msg_start_request   DC.B    'Please enter an starting address: ',0
+msg_end_request     DC.B    'Please enter an ending address: ',0
 msg_continue_request    DC.B    'Hit any key to continue...',0
 msg_goagain_request     DC.B    'Would you like to dissassemble a new location?',CR,LF
-                        DC.B    'Type (y)es or (n)o and hit "Enter"',CR,LF,0
-msg_thanks              DC.B    'Thanks for using the TeamReliable Disassembler',0
-msg_blank               DC.B    '',CR,LF,0
+                        DC.B    'Type (y)es or (n)o and hit "Enter"',0
+msg_thanks              DC.B    'Thanks for using the TeamReliable Disassembler!',CR,LF
+                        DC.B    'Please give us money. ',0
+msg_blank               DC.B    '',0
 
 *--Variables--*
 
@@ -1128,6 +1131,9 @@ var_line_number     DS.W    1
 var_output_buffer   DS.L    10
 
     END     START
+
+
+
 
 
 
