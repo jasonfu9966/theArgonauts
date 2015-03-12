@@ -29,10 +29,11 @@ START   JSR     ClearAll
         JSR     Intro
         JSR     GetStartAddr
         JSR     GetEndAddr
+        JSR     PrintBlankLine
         JSR     LoadStartAddr
         JSR     MainLoop
         JMP     GoAgain
-        JMP     End
+        JMP     error
         
 *===Main Routines===*
 
@@ -153,7 +154,6 @@ Intro
         RTS
 
 GetStartAddr    *Used:  A1, D2, D6
-
         LEA     msg_start_request,  A1
         JSR     Helper_DisplayMsg
         LEA     var_start_addr,     A1
@@ -165,7 +165,6 @@ GetStartAddr    *Used:  A1, D2, D6
         RTS
 
 GetEndAddr      *Used
-
         LEA     msg_end_request,    A1
         JSR     Helper_DisplayMsg
         LEA     var_end_addr,       A1
@@ -181,6 +180,23 @@ LoadStartAddr
         RTS
         
 GoAgain
+        LEA     msg_goagain_request,    A1
+        JSR     Helper_DisplayMsg
+        JSR     Helper_GetAsciiInput
+        CMP.B   #$79,                   D1
+        BEQ     GoAgain_Yes
+        CMP.B   #$6E,                   D1
+        BEQ     GoAgain_No
+        JMP     error
+        
+GoAgain_Yes
+        JMP     START
+        
+GoAgain_No
+        JSR     PrintBlankLine
+        LEA     msg_thanks,             A1
+        JSR     Helper_DisplayMsg
+        JMP     END
 
 *===Main Loop Routines===*
 
@@ -197,7 +213,7 @@ MainLoopCont
         JSR     Buffer_LoadBuffer
         JSR     Buffer_BufferAddress
         JSR     LoadOpCode
-        JSR     DisplayToConsole
+        *JSR     DisplayToConsole
         JSR     UpdateNumDisplayed
         BRA     MainLoop
 
@@ -234,15 +250,17 @@ LoadOpCode
         RTS
 
 DisplayToConsole
+        JSR     ClearAllDn
         MOVE.B  #$00,               (A6)+
-        CLR.L   D1
-        MOVE.W  var_line_number,    D1
-        MOVE.B  #3,                 D0
-        TRAP    #15
+*        CLR.L   D1
+*        MOVE.W  var_line_number,    D1
+*        MOVE.B  #3,                 D0
+*        TRAP    #15
                
         LEA     var_output_buffer,  A1
         MOVE.B  #13,                D0
         TRAP    #15
+        JSR     PrintBlankLine
         RTS
         
 
@@ -250,6 +268,10 @@ UpdateNumDisplayed
         ADD.B   #1,     var_num_displayed
         RTS
         
+PrintBlankLine
+        LEA     msg_blank,          A1
+        JSR     Helper_DisplayMsg
+        RTS
         
 *----------------------------------------------------------------
 *              Op Code Decode Routines                          |
@@ -260,29 +282,31 @@ UpdateNumDisplayed
 Group0000   *Immediate Op's: CMPI, SUBI, ANDI, EORI, BCHG
         JSR     ClearAllDn
         MOVE.W  var_opcode_op,  D5
-*--Isolate next 4 bits        
+        *--Isolate next 4 bits
+        *--Isolate size (bit #0 to #2, byte size)
+        *--Check if BCHG (bit #3 is set, byte size)
         MOVE.W  D5,     D4
         JSR     Decode_Isolate0to7onD4
-*--Check if BCHG (bit #3 is set, byte size)
-        BSET    #3,     D4
-        BVS     Group0000_BCHG_dn
-        BRA     Group0000_cont
+        LSR.W   #1,     D4
+        BCS     Group0000_BCHG_dn
+        BCC     Group0000_cont
 
 Group0000_BCHG_dn
-*--Isolate size (bit #0 to #2, byte size)
-        LSR.W   #1,     D4
+        MOVE.B  #1,     var_opcode_src_mode
         MOVE.B  D4,     var_opcode_src_reg
-        BRA     Group0000_BCHG_ea
+        JSR     Group0000_BCHG_ea
+        BRA     BCHG_Print
         
 Group0000_cont
-*--Is it a BCHG?
+        *--Is it a BCHG?
         CMP.W   #8,     D4
         BNE     Group0000_IOps_size
+        MOVE.B  #0,     var_opcode_src_mode
         JSR     Group0000_BCHG_ea
         BRA     BCHG_Print
    
 Group0000_IOps_size
-*--Isolate size (bit #8-#9)
+        *--Isolate size (bit #8-#9)
         CLR     D4
         MOVE.B  D5,     D4
         LSR     #6,     D4
@@ -291,14 +315,14 @@ Group0000_IOps_size
         BRA     Group0000_PrintSwitch
 
 Group0000_BCHG_ea
-*--Isolate BCHG dest mode
+        *--Isolate BCHG dest mode
         CLR     D4
         MOVE.B  D5,     D4
         LSL.B   #2,     D4
         LSR.B   #5,     D4
         MOVE.B  D4,     var_opcode_dest_mode
         JSR     Group0000_BCHG_SizeCheck
-*--Isolate BCHG dest register
+        *--Isolate BCHG dest register
         CLR     D4
         MOVE.B  D5,     D4
         LSL.B   #5,     D4
@@ -307,13 +331,13 @@ Group0000_BCHG_ea
         RTS
         
 Group0000_IOps_ea
-*--Isolate EA dest mode
+        *--Isolate EA dest mode
         CLR     D4
         MOVE.B  D5,     D4
         LSL.B   #2,     D4
         LSR.B   #5,     D4
         MOVE.B  D4,     var_opcode_dest_mode
-*--Isolate EA dest register
+        *--Isolate EA dest register
         CLR     D4
         MOVE.B  D5,     D4
         LSL.B   #5,     D4
@@ -346,6 +370,14 @@ Group0000_PrintSwitch
         BEQ     EORI_Print
 
         jmp     error
+        
+*---Group0000 Helpers
+
+Group0000_CheckEAMode
+        MOVE.B  var_opcode_src_mode,    D1
+        CMPI.B  #0,                     D1
+        BEQ     Buffer_GetIDataBySize
+        BNE     BufferDataReg
 
 *----------------Group0001
 *---todo
@@ -557,19 +589,30 @@ Bit111
 *----------------------------------------------------------------
 
 BCHG_Print
-
+        JSR     ClearAllDn
+        JSR     BufferBCHG
+        JSR     BufferTab
+        JSR     Group0000_CheckEAMode
+        JSR     BufferComma
+        JSR     BufferSpace
+        MOVE.B  var_opcode_dest_mode,   D2  *used in CompareMode
+        MOVE.B  var_opcode_dest_reg,    D3  *used in CompareXn
+        JSR     Buffer_CompareMode
+        RTS
+        
 SUBI_Print
         
 ANDI_Print
 
 EORI_Print
-        JSR     Buffer_ORI
+        JSR     ClearAllDn
+        JSR     Buffer_EORI
         JSR     Buffer_OpCode_Size
         JSR     Buffer_GetIDataBySize
         JSR     BufferComma
         JSR     BufferSpace
-        MOVE.W  var_opcode_dest_mode,   D2  *used in CompareMode
-        MOVE.W  var_opcode_dest_reg,    D3  *used in CompareXn
+        MOVE.B  var_opcode_dest_mode,   D2  *used in CompareMode
+        MOVE.B  var_opcode_dest_reg,    D3  *used in CompareXn
         JSR     Buffer_CompareMode
         RTS
 
@@ -579,6 +622,11 @@ CMPI_Print
 *----------------------------------------------------------------
 *              Op Code Name Buffer Routines                     |
 *----------------------------------------------------------------
+
+Buffer_EORI
+        JSR         Buffer_ORI
+        MOVE.B      #$49, (A6)+
+        RTS
 
 Buffer_ORI
         MOVE.B      #$4F, (A6)+
@@ -619,8 +667,9 @@ Buffer_GetByte
         JSR         BufferDollar
         MOVE.W      (A5)+,              D5
         MOVE.B      #2,                 var_decode_length
-        MOVE.B      #24,                D3
-        LSL.L       D3,                 D4
+        CLR.B       var_decode_counter
+        MOVE.B      #24,                D4
+        LSL.L       D4,                 D5
         JSR         HexToChar
         RTS
 
@@ -628,8 +677,9 @@ Buffer_GetWord
         JSR         BufferDollar
         MOVE.W      (A5)+,              D5
         MOVE.B      #4,                 var_decode_length
-        MOVE.B      #24,                D3
-        LSL.L       D3,                 D4
+        CLR.B       var_decode_counter
+        MOVE.B      #16,                D4
+        LSL.L       D4,                 D5
         JSR         HexToChar
         RTS
         
@@ -637,8 +687,7 @@ Buffer_GetLong
         JSR         BufferDollar
         MOVE.L      (A5)+,              D5
         MOVE.B      #8,                 var_decode_length
-        MOVE.B      #24,                D3
-        LSL.L       D3,                 D4
+        CLR.B       var_decode_counter
         JSR         HexToChar
         RTS
 
@@ -794,6 +843,13 @@ Helper_GetInput
         TRAP    #15
         CLR     D0
         RTS
+        
+Helper_GetAsciiInput
+
+        MOVE.B  #5,     D0
+        TRAP    #15
+        CLR     D0
+        RTS
 
 *--Helper: CharToHex--*
 
@@ -906,6 +962,15 @@ Buffer_BufferAddress
 *              Buffer Ascii Load Routines                       |
 *----------------------------------------------------------------
 
+*--OpCodes
+
+BufferBCHG
+        MOVE.B      #$42, (A6)+
+        MOVE.B      #$54, (A6)+
+        MOVE.B      #$53, (A6)+
+        MOVE.B      #$54, (A6)+
+        RTS
+
 *--Modes--*
 
 BufferDataReg
@@ -970,9 +1035,14 @@ end     NOP
 *---Variables/Constants--*
 
 msg_intro           DC.B    'Welcome to the 68k Dissesembler.',LF,CR,0
-msg_start_request   DC.B    'Please enter an starting address: ',0
-msg_end_request     DC.B    'Please enter an ending address: ',0
+msg_start_request   DC.B    'Please enter an starting address: ',CR,0
+msg_end_request     DC.B    'Please enter an ending address: ',CR,0
 msg_continue_request    DC.B    'Hit any key to continue',0
+msg_goagain_request     DC.B    'Would you like to dissassemble a new location?',0
+                        DC.B    'Type (y)es or (n)o and hit "Enter"',CR,0
+msg_thanks              DC.B    'Thanks for using the TeamReliable Disassembler',0
+msg_blank               DC.B    '',CR,LF,0
+
 
 *--Variables--*
 
@@ -1014,6 +1084,7 @@ var_output_buffer   DS.L    10
 
 
 =======
+
 
 
 
