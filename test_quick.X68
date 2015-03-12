@@ -7,6 +7,8 @@
     ORG    $5000
 START:                  ; first instruction of program
     BCHG.B    d5,  $7000
+    MOVE.L    #$12345678,   D1
+	MOVE.W    D1,	$5010
     *ANDI.W  #$1111, D4
 
 * Put program code here
@@ -16,6 +18,7 @@ START:                  ; first instruction of program
 * Put variables and constants here
 
     END    START        ; last line of source
+
 
 
 

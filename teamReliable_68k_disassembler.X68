@@ -269,8 +269,8 @@ UpdateNumDisplayed
         RTS
         
 PrintBlankLine
-        LEA     msg_blank,          A1
-        JSR     Helper_DisplayMsg
+        *LEA     msg_blank,          A1
+        *JSR     Helper_DisplayMsg
         RTS
         
 *----------------------------------------------------------------
@@ -590,7 +590,7 @@ Bit111
 
 BCHG_Print
         JSR     ClearAllDn
-        JSR     BufferBCHG
+        JSR     Buffer_BCHG
         JSR     BufferTab
         JSR     Group0000_CheckEAMode
         JSR     BufferComma
@@ -601,9 +601,29 @@ BCHG_Print
         RTS
         
 SUBI_Print
+        JSR     ClearAllDn
+        JSR     Buffer_SUBI
+        JSR     Buffer_OpCode_Size
+        JSR     Buffer_GetIDataBySize
+        JSR     BufferComma
+        JSR     BufferSpace
+        MOVE.B  var_opcode_dest_mode,   D2  *used in CompareMode
+        MOVE.B  var_opcode_dest_reg,    D3  *used in CompareXn
+        JSR     Buffer_CompareMode
+        RTS
         
 ANDI_Print
-
+        JSR     ClearAllDn
+        JSR     Buffer_ANDI
+        JSR     Buffer_OpCode_Size
+        JSR     Buffer_GetIDataBySize
+        JSR     BufferComma
+        JSR     BufferSpace
+        MOVE.B  var_opcode_dest_mode,   D2  *used in CompareMode
+        MOVE.B  var_opcode_dest_reg,    D3  *used in CompareXn
+        JSR     Buffer_CompareMode
+        RTS
+        
 EORI_Print
         JSR     ClearAllDn
         JSR     Buffer_EORI
@@ -617,21 +637,69 @@ EORI_Print
         RTS
 
 CMPI_Print
+        JSR     ClearAllDn
+        JSR     Buffer_CMPI
+        JSR     Buffer_OpCode_Size
+        JSR     Buffer_GetIDataBySize
+        JSR     BufferComma
+        JSR     BufferSpace
+        MOVE.B  var_opcode_dest_mode,   D2  *used in CompareMode
+        MOVE.B  var_opcode_dest_reg,    D3  *used in CompareXn
+        JSR     Buffer_CompareMode
+        RTS
 
 
 *----------------------------------------------------------------
 *              Op Code Name Buffer Routines                     |
 *----------------------------------------------------------------
 
+Buffer_BCHG
+        MOVE.B      #$42,   (A6)+
+        MOVE.B      #$54,   (A6)+
+        MOVE.B      #$53,   (A6)+
+        MOVE.B      #$54,   (A6)+
+        RTS
+
 Buffer_EORI
         JSR         Buffer_ORI
-        MOVE.B      #$49, (A6)+
+        MOVE.B      #$49,   (A6)+
         RTS
 
 Buffer_ORI
-        MOVE.B      #$4F, (A6)+
-        MOVE.B      #$52, (A6)+
-        MOVE.B      #$49, (A6)+
+        MOVE.B      #$4F,   (A6)+
+        MOVE.B      #$52,   (A6)+
+        MOVE.B      #$49,   (A6)+
+        RTS
+        
+Buffer_CMPI
+        JSR         Buffer_CMP
+        MOVE.B      #$49,   (A6)+
+        RTS
+        
+Buffer_CMP
+        MOVE.B      #$43,   (A6)+
+        MOVE.B      #$4D,   (A6)+
+        MOVE.B      #$50,   (A6)+
+        RTS
+
+Buffer_ANDI
+        JSR         Buffer_AND
+        MOVE.B      #$49,   (A6)+
+
+Buffer_SUBI
+        JSR         Buffer_SUB
+        MOVE.B      #$49,   (A6)+
+
+Buffer_AND
+        MOVE.B      #$41,   (A6)+
+        MOVE.B      #$4E,   (A6)+
+        MOVE.B      #$44,   (A6)+
+        RTS
+        
+Buffer_SUB
+        MOVE.B      #$53,   (A6)+
+        MOVE.B      #$55,   (A6)+
+        MOVE.B      #$42,   (A6)+
         RTS
         
 *----------------------------------------------------------------
@@ -962,15 +1030,6 @@ Buffer_BufferAddress
 *              Buffer Ascii Load Routines                       |
 *----------------------------------------------------------------
 
-*--OpCodes
-
-BufferBCHG
-        MOVE.B      #$42, (A6)+
-        MOVE.B      #$54, (A6)+
-        MOVE.B      #$53, (A6)+
-        MOVE.B      #$54, (A6)+
-        RTS
-
 *--Modes--*
 
 BufferDataReg
@@ -1035,11 +1094,11 @@ end     NOP
 *---Variables/Constants--*
 
 msg_intro           DC.B    'Welcome to the 68k Dissesembler.',LF,CR,0
-msg_start_request   DC.B    'Please enter an starting address: ',CR,0
-msg_end_request     DC.B    'Please enter an ending address: ',CR,0
+msg_start_request   DC.B    'Please enter an starting address: ',CR,LF,0
+msg_end_request     DC.B    'Please enter an ending address: ',CR,LF,0
 msg_continue_request    DC.B    'Hit any key to continue',0
-msg_goagain_request     DC.B    'Would you like to dissassemble a new location?',0
-                        DC.B    'Type (y)es or (n)o and hit "Enter"',CR,0
+msg_goagain_request     DC.B    'Would you like to dissassemble a new location?',CR,LF
+                        DC.B    'Type (y)es or (n)o and hit "Enter"',CR,LF,0
 msg_thanks              DC.B    'Thanks for using the TeamReliable Disassembler',0
 msg_blank               DC.B    '',CR,LF,0
 
@@ -1084,6 +1143,7 @@ var_output_buffer   DS.L    10
 
 
 =======
+
 
 
 
