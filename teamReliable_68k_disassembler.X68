@@ -402,7 +402,7 @@ Group0000_Buffer_Src_Reg_Prep
 Group0001
         JSR     ClearAllDn
         MOVE.B  #1,     var_opcode_typeid
-        MOVE.B  #0,     var_opcode_size
+        MOVE.B  #1,     var_opcode_size
         JSR     Buffer_MOVE
         JSR     BufferSizeByte
         JSR     Decode_Move_src
@@ -418,7 +418,7 @@ Group0001
 Group0010
         JSR     ClearAllDn
         MOVE.B  #2,     var_opcode_typeid
-        MOVE.B  #2,     var_opcode_size
+        MOVE.B  #3,     var_opcode_size
         JSR     Buffer_MOVE
         JSR     BufferSizeLong
         JSR     Decode_Move_src
@@ -434,7 +434,7 @@ Group0010
 Group0011
         JSR     ClearAllDn
         MOVE.B  #3,     var_opcode_typeid
-        MOVE.B  #1,     var_opcode_size
+        MOVE.B  #2,     var_opcode_size
         JSR     Buffer_MOVE
         JSR     BufferSizeWord
         JSR     Decode_Move_src
@@ -670,8 +670,8 @@ Isolate_Bits7to9totemp                       *isolates bits 7to9
         MOVE.B  #SHIFT10,       D3
         LSR.W   D3,             D4
         ROR.W   #3,             D0
-        MOVE.B  #SHIFT13,       D3
-        LSR.W   D3,             D4
+*        MOVE.B  #SHIFT13,       D3
+*        LSR.W   D3,             D4
         MOVE.B  D4,             var_temp
         RTS
 
@@ -1046,7 +1046,7 @@ XnCompare1
         BNE     XnCompare5
         
 XnCompare5
-        CMPI.B  #100,           D3
+        CMPI.B  #%100,          D3
         BEQ     Buffer_GetImmediate
         BNE     error
         
@@ -1065,7 +1065,7 @@ Buffer_GetImmediate
         BRA     error
         
 ImmediateData_TypeMove
-        MOVE.W  var_opcode_size,    D4
+        MOVE.B  var_opcode_size,    D4
         CMPI.B  #%01,               D4
         BEQ     Buffer_GetByte
         CMPI.B  #%11,               D4
@@ -1075,7 +1075,7 @@ ImmediateData_TypeMove
         BRA     error
         
 ImmediateData_TypeSize1
-        MOVE.W  var_opcode_size,    D4
+        MOVE.B  var_opcode_size,    D4
         CMPI.B  #%0,                D4
         BEQ     Buffer_GetWord
         CMPI.B  #%1,                D4
@@ -1083,7 +1083,7 @@ ImmediateData_TypeSize1
         BRA     error
         
 ImmediateData_TypeSize2
-        MOVE.W  var_opcode_size,    D4
+        MOVE.B  var_opcode_size,    D4
         CMPI.B  #%00,               D4
         BEQ     Buffer_GetByte
         CMPI.B  #%10,               D4
@@ -1391,6 +1391,7 @@ var_output_buffer   DS.L    10
 var_temp            DS.B    1
 
     END     START
+
 
 
 
