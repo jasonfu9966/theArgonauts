@@ -301,6 +301,7 @@ Group0000_BCHG_dn
         MOVE.B  #1,     var_opcode_src_mode
         MOVE.B  D4,     var_opcode_src_reg
         JSR     Group0000_BCHG_ea
+
         BRA     BCHG_Decode
         
 Group0000_cont
@@ -312,6 +313,7 @@ Group0000_cont
         BNE     Group0000_IOps_size
         MOVE.B  #0,     var_opcode_src_mode
         JSR     Group0000_BCHG_ea
+
         BRA     BCHG_Decode
    
 Group0000_IOps_size
@@ -370,12 +372,16 @@ Group0000_PrintSwitch
         MOVE.B  D5,     D4
         LSR.W   #8,     D4
         CMPI.W  #%00001100, D4
+
         BEQ     CMPI_Decode
         CMPI.W  #%00000010, D4
+
         BEQ     ANDI_Decode
         CMPI.W  #%00000100, D4
+
         BEQ     SUBI_Decode
         CMPI.W  #%00001010, D4
+
         BEQ     EORI_Decode
 
         jmp     error
@@ -385,6 +391,7 @@ Group0000_PrintSwitch
 Group0000_CheckEAMode
         MOVE.B  var_opcode_src_mode,    D1
         CMPI.B  #0,                     D1
+
         BEQ     Decode_GetIDataBySize
         BNE     Group0000_Buffer_Src_Reg_Prep
         
@@ -453,11 +460,55 @@ Group0100
         LSL.W   #4,             D4
         MOVE.W  #SHIFT12,       D3
         LSR.W   D3,             D4
-        MOVE.W  D4,             var_group0100_id
+
+        MOVE.B  D4,             var_group0100_id
+        
+        MOVE.W  D5,             D4
+        LSL.W   #7,             D4
+        MOVE.W  #SHIFT13,       D3
+        LSR.W   D3,             D4
+        MOVE.W  D4,             var_group0100_id_LEA       
+        
+        MOVE.W  D5,             D4
+        LSL.W   #8,             D4
+        MOVE.W  #SHIFT14,       D3
+        LSR.W   D3,             D4
+        MOVE.B  D4,             var_opcode_size        
         
         MOVE.W  D5,             D4
         LSL.W   #4,             D4
-        MOVE.W  #SHIFT13,       
+
+        MOVE.W  #SHIFT13,       D3
+        LSR.W   D3,             D4
+        MOVE.B  D4,             var_opcode_dest_reg
+
+        MOVE.W  D5,             D4
+        MOVE.W  #SHIFT10,       D3
+        LSL.W   D3,             D4
+        MOVE.W  #SHIFT13,       D3
+        LSR.W   D3,             D4
+        MOVE.W  D4,             var_opcode_src_mode
+                
+        MOVE.W  D5,             D4
+        MOVE.W  #SHIFT13,       D3
+        LSL.W   D3,             D4
+        LSR.W   D3,             D4
+        MOVE.W  D4,             var_opcode_src_reg
+        
+        CMPI.W  #%111,          var_group0100_id_LEA
+        BEQ     LEA_Decode
+        CMPI.W  #%0010,         var_group0100_id
+        BEQ     CLR_Decode
+        CMPI.W  #%1110,         var_group0100_id
+        BEQ     Group0100_CheckJSROrRTS
+        CMPI.W  #%1100,         var_group0100_id
+        BEQ     MOVEM_Decode
+        CMPI.W  #%1000,         var_group0100_id
+        BEQ     MOVEM_Decode
+        
+        JMP     error
+        
+Group0100_CheckJSROrRTS
         
         
 *            JSR     ClearAllDn
@@ -490,6 +541,7 @@ Group0101
         ;   figure out EA push
         RTS
         
+
 
 *----------------Group0110
 Group0110          *Immediate OP code: BCC, BGT, BLE, BVS, BRA
@@ -532,7 +584,8 @@ Group1001           *Immediate OP code: SUB, SUBA
 
 *----------------Group1010
 
-Group1010           *No immediate opcode
+
+Group1010
 
 *----------------Group1011
 
@@ -595,7 +648,10 @@ Decode_Isolate0to7onD4
         LSR.W   D0,         D4
         CLR     D0
         RTS
+*Decode_Move_Src
+*        BRA     Decode_Move_Src_Reg
         
+*Decode_Move_Src_Reg                         *isolates bits 13-15
 Isolate_Bits4to6totemp                        *isolates bits 4to6
         CLR     D3
         CLR     D4
@@ -603,14 +659,19 @@ Isolate_Bits4to6totemp                        *isolates bits 4to6
         CLR.B   var_temp
         MOVE.W  var_opcode_op,  D5
         MOVE.W  D5,             D4
+*        ROR.W   #3,             D4
+*        MOVE.B  #SHIFT13,       D3
         MOVE.B  #SHIFT12,       D3
         ROR.W   D3,             D4
         MOVE.B  #SHIFT13,       D3 
         LSR.W   D3,             D4
+*        MOVE.B  D4,             var_opcode_src_reg
+*        BRA     Decode_Move_Src_Mode
         MOVE.B  D4,             var_temp
         RTS
 
         
+*Decode_Move_Src_Mode                        *isolates bits 10-12
 Isolate_Bits7to9totemp                       *isolates bits 7to9
         CLR     D3
         CLR     D4
@@ -618,6 +679,7 @@ Isolate_Bits7to9totemp                       *isolates bits 7to9
         CLR.B   var_temp
         MOVE.W  var_opcode_op,  D5
         MOVE.W  D5,             D4
+*        ROR.W   #6,             D4
         MOVE.B  #SHIFT12,       D3
         ROR.W   D3,             D4
         MOVE.B  #SHIFT10,       D3
@@ -625,9 +687,21 @@ Isolate_Bits7to9totemp                       *isolates bits 7to9
         ROR.W   #3,             D0
         MOVE.B  #SHIFT13,       D3
         LSR.W   D3,             D4
+*        MOVE.B  D4,             var_opcode_src_mode
+*        
+*        CLR     D2
+*        CLR     D3
+*        CLR     D4
+*        MOVE.B  var_opcode_src_mode,   D2  *used in CompareMode
+*        MOVE.B  var_opcode_src_reg,    D3  *used in CompareXn
+*        JSR     Buffer_CompareMode
         MOVE.B  D4,             var_temp
         RTS
+*
+*Decode_Move_Dest
+*        BRA     Decode_Move_Dest_Reg
         
+*Decode_Move_Dest_Reg                        *isolates bits 4-6
 Isolate_Bits10to12totemp                        *isolates bits 10to12
         CLR     D3
         CLR     D4
@@ -635,9 +709,16 @@ Isolate_Bits10to12totemp                        *isolates bits 10to12
         CLR.B   var_temp
         MOVE.W  var_opcode_op,  D5
         MOVE.W  D5,             D4
+*        MOVE.B  #SHIFT12,       D3
+*        ROR.W   D3,             D4
+*        MOVE.B  #SHIFT13,       D3 
         ROR.W   #6,             D4
         MOVE.B  #SHIFT13,       D3
         LSR.W   D3,             D4
+*        MOVE.B  D4,             var_opcode_dest_reg
+*        BRA     Decode_Move_Dest_Mode
+*        
+*Decode_Move_Dest_Mode                       *isolates bits 7-9
         MOVE.B  D4,             var_temp
         RTS
 
@@ -648,9 +729,15 @@ Isolate_Bits13to15totemp                         *isolates bits 13to15
         CLR.B   var_temp
         MOVE.W  var_opcode_op,  D5
         MOVE.W  D5,             D4
+*        MOVE.B  #SHIFT12,       D3
+*        ROR.W   D3,             D4
+*        MOVE.B  #SHIFT10,       D3
+*        LSR.W   D3,             D4
+*        ROR.W   #3,             D0
         ROR.W   #3,             D4
         MOVE.B  #SHIFT13,       D3
         LSR.W   D3,             D4
+
         MOVE.B  D4,             var_temp 
         RTS
 
@@ -669,6 +756,7 @@ Decode_Move_Buffer_Dest
         CLR     D4
         MOVE.B  var_opcode_dest_mode,   D2  *used in CompareMode
         MOVE.B  var_opcode_dest_reg,    D3  *used in CompareXn
+
         JSR     Decode_CompareMode
         RTS
 
@@ -693,6 +781,7 @@ Isolate_Size                                *isolates bits 9 and 10
         ROR.W   #7,             D4
         MOVE.B  #SHIFT14,       D3
         LSR.W   D3,             D4
+
         MOVE.B  D4,             var_temp
         RTS
         
@@ -700,6 +789,7 @@ Isolate_Size                                *isolates bits 9 and 10
 *----------------------------------------------------------------
 *              Op Code Decode Print Routines                    |
 *----------------------------------------------------------------
+
 
 BCHG_Decode
         JSR     ClearAllDn
@@ -710,57 +800,75 @@ BCHG_Decode
         JSR     BufferSpace
         MOVE.B  var_opcode_dest_mode,   D2  *used in CompareMode
         MOVE.B  var_opcode_dest_reg,    D3  *used in CompareXn
+
         JSR     Decode_CompareMode
         RTS
         
+
 SUBI_Decode
         JSR     ClearAllDn
         JSR     Buffer_SUBI
+
         JSR     Decode_OpCode_Size
         JSR     Decode_GetIDataBySize
         JSR     BufferComma
         JSR     BufferSpace
         MOVE.B  var_opcode_dest_mode,   D2  *used in CompareMode
         MOVE.B  var_opcode_dest_reg,    D3  *used in CompareXn
+
         JSR     Decode_CompareMode
         RTS
         
+
 ANDI_Decode
         JSR     ClearAllDn
         JSR     Buffer_ANDI
+
         JSR     Decode_OpCode_Size
         JSR     Decode_GetIDataBySize
         JSR     BufferComma
         JSR     BufferSpace
         MOVE.B  var_opcode_dest_mode,   D2  *used in CompareMode
         MOVE.B  var_opcode_dest_reg,    D3  *used in CompareXn
+
         JSR     Decode_CompareMode
         RTS
         
+
 EORI_Decode
         JSR     ClearAllDn
         JSR     Buffer_EORI
+
         JSR     Decode_OpCode_Size
         JSR     Decode_GetIDataBySize
         JSR     BufferComma
         JSR     BufferSpace
         MOVE.B  var_opcode_dest_mode,   D2  *used in CompareMode
         MOVE.B  var_opcode_dest_reg,    D3  *used in CompareXn
+
         JSR     Decode_CompareMode
         RTS
+
 
 CMPI_Decode
         JSR     ClearAllDn
         JSR     Buffer_CMPI
+
         JSR     Decode_OpCode_Size
         JSR     Decode_GetIDataBySize
         JSR     BufferComma
         JSR     BufferSpace
         MOVE.B  var_opcode_dest_mode,   D2  *used in CompareMode
         MOVE.B  var_opcode_dest_reg,    D3  *used in CompareXn
+
         JSR     Decode_CompareMode
         RTS
 
+LEA_Decode
+
+CLR_Decode
+
+MOVEM_Decode
 
 *----------------------------------------------------------------
 *              Op Code Name Buffer Routines                     |
@@ -901,7 +1009,7 @@ Decode_GetIDataBySize
         RTS
         
 *----------------------------------------------------------------
-*              EA Component Buffer Helper Routines              |
+*              EA Component Decode Helper Routines              |
 *----------------------------------------------------------------
 
 Buffer_GetByte
@@ -1307,7 +1415,8 @@ var_opcode_src_reg      DS.B    1
 var_opcode_dest_mode    DS.B    1
 var_opcode_dest_reg     DS.B    1
 
-var_temp                DS.B    1
+var_group0100_id        DS.B    1
+var_group0100_id_LEA    DS.B    1
 
 var_decode_counter  DS.B    1
 var_decode_length   DS.B    1
