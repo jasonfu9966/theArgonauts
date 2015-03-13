@@ -504,6 +504,11 @@ Group0100
         JMP     error
         
 Group0100_CheckJSROrRTS
+        CMPI.W  #%10,           var_opcode_size
+        BEQ     JSR_Decode
+        CMPI.W  #01,            var_opcode_size
+        BEQ     RTS_Decode
+        BNE     error
         
         
 *            JSR     ClearAllDn
@@ -665,11 +670,14 @@ Isolate_Bits7to9totemp                       *isolates bits 7to9
         CLR.B   var_temp
         MOVE.W  var_opcode_op,  D5
         MOVE.W  D5,             D4
-        MOVE.B  #SHIFT12,       D3
-        ROR.W   D3,             D4
-        MOVE.B  #SHIFT10,       D3
+        LSL.W   #7,             D4
+        MOVE.B  #SHIFT13,       D3
         LSR.W   D3,             D4
-        ROR.W   #3,             D0
+*        MOVE.B  #SHIFT12,       D3
+*        ROR.W   D3,             D4
+*        MOVE.B  #SHIFT10,       D3
+*        LSR.W   D3,             D4
+*        ROR.W   #3,             D0
 *        MOVE.B  #SHIFT13,       D3
 *        LSR.W   D3,             D4
         MOVE.B  D4,             var_temp
@@ -826,10 +834,21 @@ CMPI_Decode
         RTS
 
 LEA_Decode
+        JSR     ClearAllDn
+        JSR     Buffer_LEA
+        JSR     BufferTab
+        JSR     BufferSpace
+        MOVE.W  var_opcode_src_mode,    D3
+        MOVE.W  var_opcpde_src_reg,    D2
+        JSR     
 
 CLR_Decode
 
 MOVEM_Decode
+
+JSR_Decode
+
+RTS_Decode
 
 *----------------------------------------------------------------
 *              Op Code Name Buffer Routines                     |
