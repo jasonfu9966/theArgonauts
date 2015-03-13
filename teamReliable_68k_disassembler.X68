@@ -1,8 +1,8 @@
 *-----------------------------------------------------------
-* Title      :
-* Written by :
-* Date       :
-* Description:
+* Title      :      Easy68k Disassembler
+* Written by :      Nicholas Abel and Jason Fu
+* Date       :      March 2015
+* Description:      Documentation
 *----------------------------------------------------------
 
 *===Preprocessor Instructions===*
@@ -568,6 +568,7 @@ Group1000           *Immediate OP code: DIVS
             JSR     Isolate_Bits13to15totemp        ;EA Register
             MOVE.B  var_temp,       var_opcode_src_reg
             JSR     DIVS_Decode
+            RTS
 
 
 *----------------Group1001
@@ -866,7 +867,7 @@ JSR_Decode
         MOVE.B  var_opcode_src_reg,    D2
         MOVE.B  var_opcode_src_mode,   D3
         JSR     Decode_CompareMode
-        JSR
+        RTS
 
 RTS_Decode
         JSR     Buffer_RTS
@@ -891,7 +892,14 @@ ADDQ_Decode                             ;figure out about printing immediate dat
 DIVS_Decode                             ;figure out about printing immediate data
         JSR     ClearAllDn
         JSR     Buffer_DIVS
-        ;                           'MO STUFF
+        
+        JSR     Decode_GetIDataBySize
+        JSR     BufferComma
+        JSR     BufferSpace
+        MOVE.B  var_opcode_dest_mode,   D2
+        MOVE.B  var_opcode_dest_reg,    D3
+        
+        JSR     Decode_CompareMode
         RTS
 
 *----------------------------------------------------------------
@@ -986,6 +994,31 @@ Buffer_DIVS
         MOVE.B      #$56,   (A6)+
         MOVE.B      #$53,   (A6)+
         RTS
+        
+Buffer_LEA
+        MOVE.B      #$4C,   (A6)+
+        MOVE.B      #$45,   (A6)+
+        MOVE.B      #$41,   (A6)+
+        RTS
+        
+Buffer_CLR
+        MOVE.B      #$43,   (A6)+
+        MOVE.B      #$4C,   (A6)+
+        MOVE.B      #$52,   (A6)+
+        RTS
+        
+Buffer_JSR
+        MOVE.B      #$4A,   (A6)+
+        MOVE.B      #$53,   (A6)+
+        MOVE.B      #$52,   (A6)+
+        RTS
+        
+Buffer_RTS
+        MOVE.B      #$52,   (A6)+
+        MOVE.B      #$54,   (A6)+
+        MOVE.B      #$53,   (A6)+
+        RTS
+
 *----------------------------------------------------------------
 *              Op Code Component Buffer Routines                |
 *----------------------------------------------------------------
@@ -1460,6 +1493,8 @@ var_output_buffer   DS.L    10
 var_temp            DS.B    1
 
     END     START
+
+
 
 
 
