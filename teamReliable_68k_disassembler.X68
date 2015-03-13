@@ -17,6 +17,8 @@ SHIFT11 EQU     11
 SHIFT12 EQU     12
 SHIFT13 EQU     13
 SHIFT14 EQU     14
+SHIFT16 EQU     16
+SHIFT24 EQU     24
 
 *===Code Body===*
 
@@ -493,12 +495,12 @@ Group0100
         BEQ     LEA_Decode
         CMPI.W  #%0010,         var_group0100_id
         BEQ     CLR_Decode
+        CMPI.W  #%1100,         var_group0100_id
+        BEQ     MOVEM_Decode_MemToReg
+        CMPI.W  #%1000,         var_group0100_id
+        BEQ     MOVEM_Decode_RegToMem
         CMPI.W  #%1110,         var_group0100_id
         BEQ     Group0100_CheckJSROrRTS
-        CMPI.W  #%1100,         var_group0100_id
-        BEQ     MOVEM_Decode
-        CMPI.W  #%1000,         var_group0100_id
-        BEQ     MOVEM_Decode
         
         JMP     error
         
@@ -858,14 +860,60 @@ CLR_Decode
         RTS
 
 MOVEM_Decode
+        JSR     Buffer_MOVEM
+        JSR     Buffer_OpCode_Size_Group0000
+        RTS
 
+MOVEM_Decode_RegToMem
+        JSR     MOVEM_Decode
+        JSR     Buffer_GetWord
+        JSR     BufferComma
+        JSR     BufferSpace
+        MOVE.B  var_opcode_src_mode,    D2
+        MOVE.B  var_opcode_src_reg,     D3
+        JSR     Decode_CompareMode
+        RTS
+
+MOVEM_Decode_MemToReg
+        JSR     MOVEM_Decode
+        CMPI.W  #%111,                  var_opcode_src_mode
+        BEQ     MOVEM_Decode_Get_Word
+        MOVE.B  var_opcode_src_mode,    D2
+        MOVE.B  var_opcode_src_reg,     D3
+        JSR     Decode_CompareMode
+        JSR     BufferComma
+        JSR     BufferSpace
+        JSR     Buffer_GetWord
+        RTS
+
+MOVEM_Decode_Get_Word
+        JSR     Decode_StoreData_Word
+        JMP     MOVEM_Decode_Buffer_Data
+
+MOVEM_Decode_Get_Long
+        JSR     Decode_StoreData_Word
+        JMP     MOVEM_Decode_Buffer_Data
+        
+MOVEM_Decode_Buffer_Data
+        MOVE.B  #1,                     var_decode_buffer_data_flag
+        MOVE.B  var_opcode_src_mode,    D2
+        MOVE.B  var_opcode_src_reg,     D3
+        JSR     Decode_CompareMode
+        JSR     BufferComma
+        JSR     BufferSpace
+        JSR     BufferDollar
+        CLR     D4
+        MOVE.L  var_opcode_data,        D4
+        CLR.B   var_decode_length
+        MOVE.B  #4,                     var_decode_length
+        JSR     HexToChar
 
 JSR_Decode
         JSR     Buffer_JSR
         JSR     BufferTab
         JSR     BufferSpace
-        MOVE.B  var_opcode_src_reg,    D2
-        MOVE.B  var_opcode_src_mode,   D3
+        MOVE.B  var_opcode_src_reg,     D2
+        MOVE.B  var_opcode_src_mode,    D3
         JSR     Decode_CompareMode
         RTS
 
@@ -1034,6 +1082,15 @@ Decode_OpCode_Size
         BEQ         BufferSizeLong
         BRA         error
         
+Buffer_OpCode_Size_Group0000
+        CLR         D5
+        MOVE.B      var_opcode_size,    D5
+        CMPI.B      #2,                 D5
+        BEQ         BufferSizeWord
+        CMPI.B      #3,                 D5
+        BEQ         BufferSizeLong
+        BNE         error
+        
 BufferSizeByte
         JSR         BufferPeriod
         MOVE.B      #$42,               (A6)+
@@ -1056,9 +1113,37 @@ Decode_OpCode_Size_Done
         CLR         D5
         RTS
 
+
 *----------------------------------------------------------------
 *              Op Code Component Buffer Helper Routines         |
 *----------------------------------------------------------------
+
+Decode_StoreData_Byte
+        CLR         D3
+        CLR         D4
+        CLR.L       var_opcode_data
+        MOVE.W      (A5)+,              D4
+        MOVE.W      #SHIFT24,           D3
+        LSL.L       D3,                 D4
+        MOVE.L      D4,                 var_opcode_data
+        RTS
+
+Decode_StoreData_Word
+        CLR         D3
+        CLR         D4
+        CLR.L       var_opcode_data
+        MOVE.W      (A5)+,              D4
+        MOVE.W      #SHIFT16,           D3
+        LSL.L       D3,                 D4
+        MOVE.L      D4,                 var_opcode_data
+        RTS
+
+Decode_StoreData_Long
+        CLR         D4
+        CLR.L       var_opcode_data
+        MOVE.W      (A5)+,              D4
+        MOVE.L      D4,                 var_opcode_data
+        RTS
 
 Decode_GetIDataBySize
         JSR         BufferHash
@@ -1477,12 +1562,14 @@ var_opcode_src_mode     DS.B    1
 var_opcode_src_reg      DS.B    1
 var_opcode_dest_mode    DS.B    1
 var_opcode_dest_reg     DS.B    1
+var_opcode_data         DS.L    1
 
 var_group0100_id        DS.B    1
 var_group0100_id_LEA    DS.B    1
 
 var_decode_counter  DS.B    1
 var_decode_length   DS.B    1
+var_decode_buffer_data_flag     DS.B    1
 
 var_num_displayed   DS.W    1
 
@@ -1493,6 +1580,7 @@ var_output_buffer   DS.L    10
 var_temp            DS.B    1
 
     END     START
+
 
 
 
