@@ -453,11 +453,11 @@ Group0100
         LSL.W   #4,             D4
         MOVE.W  #SHIFT12,       D3
         LSR.W   D3,             D4
-*        MOVE.W  D4,             var_group0100_id
+        MOVE.W  D4,             var_group0100_id
         
         MOVE.W  D5,             D4
         LSL.W   #4,             D4
-*        MOVE.W  #SHIFT13,       
+        MOVE.W  #SHIFT13,       
         
         
 *            JSR     ClearAllDn
@@ -677,7 +677,6 @@ Decode_Move_Src
         MOVE.B  var_temp,       var_opcode_src_reg
         JSR     Isolate_Bits10to12totemp
         MOVE.B  var_temp,       var_opcode_src_mode
-        JSR     Decode_Move_Buffer_Src 
         RTS
 
 Decode_Move_Dest
@@ -685,7 +684,6 @@ Decode_Move_Dest
         MOVE.B  var_temp,       var_opcode_dest_reg
         JSR     Isolate_Bits7to9totemp
         MOVE.B  var_temp,       var_opcode_dest_mode
-        JSR     Decode_Move_Buffer_Dest
         RTS
 
 ;       for use in ADD, ADDQ, SUB, SUBI, CLR, AND, ANDI, EOR, EORI, CMP, CMPI
