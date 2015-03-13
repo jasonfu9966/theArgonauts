@@ -533,15 +533,9 @@ Group0101
         MOVE.B  var_temp,       var_opcode_src_reg
         JSR     Isolate_Bits4to6totemp           ;data (0-7)
         MOVE.B  var_temp,       var_opcode_dest_reg
-        JSR     Buffer_ADDQ
-        ;   figure out size, push
-        JSR     BufferComma
-        JSR     BufferSpace
-        ;   figure out EA push
+        JSR                     ADDQ_DECODE
         RTS
         
-
-
 *----------------Group0110
 Group0110          *Immediate OP code: BCC, BGT, BLE, BVS, BRA
 
@@ -565,11 +559,16 @@ Group0111          *Immediate OP code: MOVEQ
 
 Group1000           *Immediate OP code: DIVS
 
-*            JSR     ClearAllDn
-*            MOVE.W  var_opcode_op,  D5
-*            *---Isolate next four bits
-*            MOVE.W  D5,     D4
-*            JSR     Decode_Isolate0to7onD4
+            JSR     ClearAllDn
+            MOVE.W  var_opcode_op,  D5
+            JSR     Isolate_Bits4to6totemp          ; DEST REG
+            MOVE.B  var_temp,       var_opcode_dest_reg
+            JSR     Isolate_Bits10to12totemp        ;EA Mode
+            MOVE.B  var_temp,       var_opcode_src_mode
+            JSR     Isolate_Bits13to15totemp        ;EA Register
+            MOVE.B  var_temp,       var_opcode_src_reg
+            JSR     DIVS_Decode
+
 
 *----------------Group1001
 
@@ -873,6 +872,28 @@ RTS_Decode
         JSR     Buffer_RTS
         RTS
 
+ADDQ_Decode                             ;figure out about printing immediate data
+        JSR     ClearAllDn
+        JSR     Buffer_ADDQ
+
+        JSR     Decode_OpCode_Size
+        JSR     BufferHash
+        JSR     BufferDollar
+        JSR     Decode_GetIDataBySize
+        JSR     BufferComma
+        JSR     BufferSpace
+        MOVE.B  var_opcode_dest_mode,   D2  *used in CompareMode        
+        MOVE.B  var_opcode_dest_reg,    D3  *used in CompareXn
+
+        JSR     Decode_CompareMode
+        RTS
+
+DIVS_Decode                             ;figure out about printing immediate data
+        JSR     ClearAllDn
+        JSR     Buffer_DIVS
+        ;                           'MO STUFF
+        RTS
+
 *----------------------------------------------------------------
 *              Op Code Name Buffer Routines                     |
 *----------------------------------------------------------------
@@ -959,6 +980,12 @@ Buffer_ADDQ
         MOVE.B      #$51,     (A6)+
         RTS
 
+Buffer_DIVS
+        MOVE.B      #$44,   (A6)+
+        MOVE.B      #$49,   (A6)+
+        MOVE.B      #$56,   (A6)+
+        MOVE.B      #$53,   (A6)+
+        RTS
 *----------------------------------------------------------------
 *              Op Code Component Buffer Routines                |
 *----------------------------------------------------------------
@@ -1433,6 +1460,7 @@ var_output_buffer   DS.L    10
 var_temp            DS.B    1
 
     END     START
+
 
 
 
