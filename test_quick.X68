@@ -18,10 +18,10 @@ START:                  ; first instruction of program
 *    BCHG.B  #$23,(A5)
 *    BCHG    #$F0,(A6)
 *    BCHG    #$1234,(A1)
-	MOVE.B  D0, D3
-	MOVE.B  (A0),D3
-	MOVE.B  (A0)+,D3
-	MOVE.B  -(A0),D3
+*	MOVE.B  D0, D3
+*	MOVE.B  (A0),D3
+*	MOVE.B  (A0)+,D3
+*	MOVE.B  -(A0),D3
 	MOVE.B  #2, D3
 	MOVE.B  $3333, D3
 	MOVE.B  $44444444, D3
@@ -65,6 +65,8 @@ START:                  ; first instruction of program
 * Put variables and constants here
 
     END    START        ; last line of source
+
+
 
 
 
