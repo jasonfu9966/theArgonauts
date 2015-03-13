@@ -95,7 +95,7 @@ JmpTable
 *              OpCode Routine Jump Table                        |
 *----------------------------------------------------------------
 
-code0000        JSR             Group0000      *Immediate Op's: CMPI, SUBI, ANDI, EORI, BCHG
+code0000        JSR             Group0000       *Immediate Op's: CMPI, SUBI, ANDI, EORI, BCHG
                 BRA             DisplayToConsole
 
 code0001        JSR             Group0001       *MOVE - Byte
@@ -107,40 +107,40 @@ code0010        JSR             Group0010       *MOVE - Long
 code0011        JSR             Group0011       *MOVE - Word
                 BRA             DisplayToConsole
 
-code0100        JSR             code0100 *MOVEM + LEA, CLR, JSR, RTS
+code0100        JSR             Group0100       *MOVEM + LEA, CLR, JSR, RTS
                 BRA             DisplayToConsole
 
-code0101        JSR             code0101 *ADDQ
+code0101        JSR             code0101        *ADDQ
                 BRA             DisplayToConsole
 
-code0110        JSR             code0110    *Branch Op's: BCC, BGT, BLE, BVS, BRA
+code0110        JSR             code0110        *Branch Op's: BCC, BGT, BLE, BVS, BRA
                 BRA             DisplayToConsole
 
-code0111        JSR             code0111 *MOVEQ
+code0111        JSR             code0111        *MOVEQ
                 BRA             DisplayToConsole
 
-code1000        JSR             code1000 *DIVS,
+code1000        JSR             code1000        *DIVS,
                 BRA             DisplayToConsole
 
-code1001        JSR             code1001 *SUB, SUBA
+code1001        JSR             code1001        *SUB, SUBA
                 BRA             DisplayToConsole
 
-code1010        JSR             code1010     *NOT USED
+code1010        JSR             code1010        *NOT USED
                 BRA             DisplayToConsole
  
-code1011        JSR             code1011 *EOR, CMP, CMPA,
+code1011        JSR             code1011        *EOR, CMP, CMPA,
                 BRA             DisplayToConsole
 
-code1100        JSR             code1100 *MULS, AND
+code1100        JSR             code1100        *MULS, AND
                 BRA             DisplayToConsole
 
-code1101        JSR             code1101      *ADD, ADDA
+code1101        JSR             code1101        *ADD, ADDA
                 BRA             DisplayToConsole
 
-code1110        JSR             code1110   *Shift/Rotate Op's: LSR, LSL, ASR, ASL, ROR, ROL
+code1110        JSR             code1110        *Shift/Rotate Op's: LSR, LSL, ASR, ASL, ROR, ROL
                 BRA             DisplayToConsole
 
-code1111        JSR             code1111    *NOT USED (Not valid for any 68k Op Codes)
+code1111        JSR             code1111        *NOT USED (Not valid for any 68k Op Codes)
                 BRA             DisplayToConsole
 
 *----------------------------------------------------------------
@@ -278,10 +278,11 @@ PrintBlankLine
 *              Op Code Decode Routines                          |
 *----------------------------------------------------------------
 
-*----------------Group0000
+*----------------Group0000 *Immediate Op's: CMPI, SUBI, ANDI, EORI, BCHG
 
-Group0000   *Immediate Op's: CMPI, SUBI, ANDI, EORI, BCHG
+Group0000
         JSR     ClearAllDn
+        MOVE.W  #0,             var_opcode_typeid
         MOVE.W  var_opcode_op,  D5
         *--Isolate next 4 bits
         *--Isolate size (bit #0 to #2, byte size)
@@ -387,10 +388,10 @@ Group0000_Buffer_Src_Reg_Prep
         JSR     Buffer_PrepareSrcReg_OnD3
         JMP     Buffer_Mode_DataReg
 
-*----------------Group0001
-
-Group0001           *Immediate OP code: MOVE.B
+*----------------Group0001  *Immediate OP code: MOVE.B
+Group0001
         JSR     ClearAllDn
+        MOVE.B  #1,     var_opcode_typeid
         MOVE.B  #0,     var_opcode_size
         JSR     Buffer_MOVE
         JSR     BufferSizeByte
@@ -401,10 +402,10 @@ Group0001           *Immediate OP code: MOVE.B
         RTS
         
 
-*----------------Group0010
-*---todo
-Group0010           *Immediate OP code: MOVE.L
+*----------------Group0010  *Immediate OP code: MOVE.L
+Group0010
         JSR     ClearAllDn
+        MOVE.B  #2,     var_opcode_typeid
         MOVE.B  #2,     var_opcode_size
         JSR     Buffer_MOVE
         JSR     BufferSizeLong
@@ -414,10 +415,10 @@ Group0010           *Immediate OP code: MOVE.L
         JSR     Decode_Move_dest
         RTS
 
-*----------------Group0011
-*---todo
-Group0011               *Immediate OP code: MOVE.W
+*----------------Group0011  *Immediate OP code: MOVE.W
+Group0011
         JSR     ClearAllDn
+        MOVE.B  #3,     var_opcode_typeid
         MOVE.B  #1,     var_opcode_size
         JSR     Buffer_MOVE
         JSR     BufferSizeWord
@@ -427,13 +428,11 @@ Group0011               *Immediate OP code: MOVE.W
         JSR     Decode_Move_dest
         RTS
 
-*----------------Group0100
-*---todo
-code0100Decode          *Immediate OP code: MOVEM, LEA, CLR, JSR, RTS
-            LEA     msg_morework,             A1
-            JSR     Helper_DisplayMsg
-            RTS
-            
+*----------------Group0100  *Immediate OP code: MOVEM, LEA, CLR, JSR, RTS
+code0100Decode
+        JSR     ClearAllDn
+        MOVE.B  #4,     var_opcode_typeid
+        
 *            JSR     ClearAllDn
 *            MOVE.W  var_opcode_op,  D5
 *            *---Isolate next four bits
@@ -441,11 +440,7 @@ code0100Decode          *Immediate OP code: MOVEM, LEA, CLR, JSR, RTS
 *            JSR     Decode_Isolate0to7onD4
 
 *----------------Group0101
-*---todo
 code0101Decode          *Immediate OP code: ADDQ
-            LEA     msg_morework,             A1
-            JSR     Helper_DisplayMsg
-            RTS
             
 *            JSR     ClearAllDn
 *            MOVE.W  var_opcode_op,  D5
@@ -454,12 +449,8 @@ code0101Decode          *Immediate OP code: ADDQ
 *            JSR     Decode_Isolate0to7onD4
 
 *----------------Group0110
-*---todo
 code0110Decode          *Immediate OP code: BCC, BGT, BLE, BVS, BRA
 
-            LEA     msg_morework,             A1
-            JSR     Helper_DisplayMsg
-            RTS
 *            JSR     ClearAllDn
 *            MOVE.W  var_opcode_op,  D5
 *            *---Isolate next four bits
@@ -467,11 +458,9 @@ code0110Decode          *Immediate OP code: BCC, BGT, BLE, BVS, BRA
 *            JSR     Decode_Isolate0to7onD4
 
 *----------------Group01111
-*---todo
+
 code0111Decode          *Immediate OP code: MOVEQ
-            LEA     msg_morework,             A1
-            JSR     Helper_DisplayMsg
-            RTS
+
 *            JSR     ClearAllDn
 *            MOVE.W  var_opcode_op,  D5
 *            *---Isolate next four bits
@@ -479,11 +468,9 @@ code0111Decode          *Immediate OP code: MOVEQ
 *            JSR     Decode_Isolate0to7onD4
 
 *----------------Group1000
-*---todo
+
 code1000Decode           *Immediate OP code: DIVS
-            LEA     msg_morework,             A1
-            JSR     Helper_DisplayMsg
-            RTS
+
 *            JSR     ClearAllDn
 *            MOVE.W  var_opcode_op,  D5
 *            *---Isolate next four bits
@@ -491,11 +478,9 @@ code1000Decode           *Immediate OP code: DIVS
 *            JSR     Decode_Isolate0to7onD4
 
 *----------------Group1001
-*---todo
+
 code1001Decode           *Immediate OP code: SUB, SUBA
-            LEA     msg_morework,             A1
-            JSR     Helper_DisplayMsg
-            RTS
+
 *            JSR     ClearAllDn
 *            MOVE.W  var_opcode_op,  D5
 *            *---Isolate next four bits
@@ -503,11 +488,9 @@ code1001Decode           *Immediate OP code: SUB, SUBA
 *            JSR     Decode_Isolate0to7onD4
 
 *----------------Group1011
-*---todo
+
 code1011Decode           *Immediate OP code: EOR, CMP, CMPA
-            LEA     msg_morework,             A1
-            JSR     Helper_DisplayMsg
-            RTS
+
 *            JSR     ClearAllDn
 *            MOVE.W  var_opcode_op,  D5
 *            *---Isolate next four bits
@@ -515,11 +498,9 @@ code1011Decode           *Immediate OP code: EOR, CMP, CMPA
 *            JSR     Decode_Isolate0to7onD4
 
 *----------------Group1100
-*---todo
+
 code1100Decode           *Immediate OP code: MULS, AND
-            LEA     msg_morework,             A1
-            JSR     Helper_DisplayMsg
-            RTS
+
 *            JSR     ClearAllDn
 *            MOVE.W  var_opcode_op,  D5
 *            *---Isolate next four bits
@@ -527,11 +508,9 @@ code1100Decode           *Immediate OP code: MULS, AND
 *            JSR     Decode_Isolate0to7onD4
 
 *----------------Group1101
-*---todo
+
 AddGroup           *Immediate OP code: ADD, ADDA
-            LEA     msg_morework,             A1
-            JSR     Helper_DisplayMsg
-            RTS
+
 *            JSR     ClearAllDn
 *            MOVE.W  var_opcode_op,  D5
 *            *---Isolate next four bits
@@ -539,11 +518,9 @@ AddGroup           *Immediate OP code: ADD, ADDA
 *            JSR     Decode_Isolate0to7onD4            
 
 *----------------Group1110
-*---todo
+
 BitShiftGroup       *Immediate OP code: LSR, LSL, ASR, ASL, ROR, ROL
-            LEA     msg_morework,             A1
-            JSR     Helper_DisplayMsg
-            RTS
+
 *            JSR     ClearAllDn
 *            MOVE.W  var_opcode_op,  D5
 *            *---Isolate next four bits
@@ -551,11 +528,9 @@ BitShiftGroup       *Immediate OP code: LSR, LSL, ASR, ASL, ROR, ROL
 *            JSR     Decode_Isolate0to7onD4
 
 *----------------Group1111
-*---todo
+
 outBadData           *No immediate op code
-            LEA     msg_morework,             A1
-            JSR     Helper_DisplayMsg
-            RTS
+
 *            JSR     ClearAllDn
 *            MOVE.W  var_opcode_op,  D5
 *            *---Isolate next four bits
@@ -679,40 +654,6 @@ Bit00X
         BVS      Bit001
         BRA      Bit000
         
-* Bit000, Bit001, Bit010, Bit011, Bit100, Bit101, Bit110, Bit111
-* append the appropriate decimal number to output
-;==============================================================================
-Bit000
-        * append #0
-        RTS
-        
-Bit001
-        * append #1
-        RTS
-
-Bit010
-        * append #2
-        RTS
-
-Bit011
-        * append #3
-        RTS
-        
-Bit100
-        * append #4
-        RTS
-        
-Bit101
-        * append #5
-        RTS
-        
-Bit110
-        * append #6
-        RTS
-        
-Bit111
-        * append #7
-        RTS
         
 *----------------------------------------------------------------
 *              Op Code Decode Print Routines                    |
