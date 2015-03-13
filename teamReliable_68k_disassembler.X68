@@ -278,7 +278,10 @@ PrintBlankLine
 *              Op Code Decode Routines                          |
 *----------------------------------------------------------------
 
-*----------------Group0000 *Immediate Op's: CMPI, SUBI, ANDI, EORI, BCHG
+
+*Group0000 
+*Immediate Op's: CMPI, SUBI, ANDI, EORI, BCHG
+*================================================================
 
 Group0000
         JSR     ClearAllDn
@@ -388,7 +391,11 @@ Group0000_Buffer_Src_Reg_Prep
         JSR     Buffer_PrepareSrcReg_OnD3
         JMP     Buffer_Mode_DataReg
 
-*----------------Group0001  *Immediate OP code: MOVE.B
+
+*Group0001 
+*Immediate OP code: MOVE.B
+*================================================================
+
 Group0001
         JSR     ClearAllDn
         MOVE.B  #1,     var_opcode_typeid
@@ -400,9 +407,11 @@ Group0001
         JSR     BufferSpace
         JSR     Decode_Move_dest
         RTS
-        
 
-*----------------Group0010  *Immediate OP code: MOVE.L
+*Group0010 
+*Immediate OP code: MOVE.L
+*================================================================
+
 Group0010
         JSR     ClearAllDn
         MOVE.B  #2,     var_opcode_typeid
@@ -415,7 +424,10 @@ Group0010
         JSR     Decode_Move_dest
         RTS
 
-*----------------Group0011  *Immediate OP code: MOVE.W
+*Group0011 
+*Immediate OP code: MOVE.W
+*================================================================
+
 Group0011
         JSR     ClearAllDn
         MOVE.B  #3,     var_opcode_typeid
@@ -428,10 +440,17 @@ Group0011
         JSR     Decode_Move_dest
         RTS
 
-*----------------Group0100  *Immediate OP code: MOVEM, LEA, CLR, JSR, RTS
-code0100Decode
+*Group0100 
+*Immediate OP code: MOVEM, LEA, CLR, JSR, RTS
+*================================================================
+
+Group0100
         JSR     ClearAllDn
-        MOVE.B  #4,     var_opcode_typeid
+        MOVE.B  #4,             var_opcode_typeid
+        MOVE.W  var_opcode_op,  D5
+        MOVE.W  D5,             D4
+        LSL.W   #4,             D4
+        
         
 *            JSR     ClearAllDn
 *            MOVE.W  var_opcode_op,  D5
@@ -439,9 +458,12 @@ code0100Decode
 *            MOVE.W  D5,     D4
 *            JSR     Decode_Isolate0to7onD4
 
-*----------------Group0101
-code0101Decode          *Immediate OP code: ADDQ
-            
+
+*Group0101
+*Immediate OP code: ADDQ
+*================================================================
+
+Group0101
 *            JSR     ClearAllDn
 *            MOVE.W  var_opcode_op,  D5
 *            *---Isolate next four bits
@@ -618,43 +640,6 @@ Decode_Move_Dest_Mode
         JSR     Buffer_CompareMode
         RTS
 
-Decode_WordtoHex               ;note: determines hex from first three bits
-        MOVE.B   D4, D3
-        BSET     #0, D3
-        BVS      Bit1XX
-        BRA      Bit0XX
-        
-Bit1XX
-        BSET     #1, D3
-        BVS      Bit11X
-        BRA      Bit10X
-        
-Bit0XX
-        BSET     #1, D3
-        BVS      Bit01X
-        BRA      Bit00X
-        
-Bit11X
-        BSET     #2, D3
-        BVS      Bit111
-        BRA      Bit110
-        
-Bit10X
-        BSET     #2, D3
-        BVS      Bit101
-        BRA      Bit100
-        
-Bit01X
-        BSET     #2, D3
-        BVS      Bit011
-        BRA      Bit010
-        
-Bit00X
-        BSET     #2, D3
-        BVS      Bit001
-        BRA      Bit000
-        
-        
 *----------------------------------------------------------------
 *              Op Code Decode Print Routines                    |
 *----------------------------------------------------------------
@@ -1223,8 +1208,8 @@ end     NOP
 *---Variables/Constants--*
 
 msg_intro           DC.B    'Welcome to the 68k Disassembler.',0
-msg_start_request   DC.B    'Please enter an starting address: ',0
-msg_end_request     DC.B    'Please enter an ending address: ',0
+msg_start_request   DC.B    'Please enter a starting address: ',0
+msg_end_request     DC.B    'Please enter a ending address: ',0
 msg_continue_request    DC.B    'Hit any key to continue...',0
 msg_goagain_request     DC.B    'Would you like to dissassemble a new location?',CR,LF
                         DC.B    'Type (y)es or (n)o and hit "Enter"',0
@@ -1259,6 +1244,7 @@ var_line_number     DS.W    1
 var_output_buffer   DS.L    10
 
     END     START
+
 
 
 
