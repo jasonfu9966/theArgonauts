@@ -514,11 +514,13 @@ Group0100_CheckJSROrRTS
 *================================================================
 
 Group0101
-*            JSR     ClearAllDn
-*            MOVE.W  var_opcode_op,  D5
-*            *---Isolate next four bits
-*            MOVE.W  D5,     D4
-*            JSR     Decode_Isolate0to7onD4
+        JSR     ClearAllDn
+        MOVE.B  #5,             var_opcode_typeid
+        MOVE.W  var_opcode_op,  D5
+        JSR     Isolate_size
+        
+        
+        
 
 *----------------Group0110
 Group0110          *Immediate OP code: BCC, BGT, BLE, BVS, BRA
@@ -628,7 +630,7 @@ Decode_Isolate0to7onD4
 Decode_Move_Src
         BRA     Decode_Move_Src_Reg
         
-Decode_Move_Src_Reg
+Decode_Move_Src_Reg                         *isolates bits 13-15
         CLR     D3
         CLR     D4
         CLR     D5
@@ -640,9 +642,11 @@ Decode_Move_Src_Reg
         MOVE.B  D4,             var_opcode_src_reg
         BRA     Decode_Move_Src_Mode
         
-Decode_Move_Src_Mode
+Decode_Move_Src_Mode                        *isolates bits 10-12
         CLR     D3
         CLR     D4
+        CLR     D5
+        MOVE.W  var_opcode_op,  D5
         MOVE.W  D5,             D4
         ROR.W   #6,             D4
         MOVE.B  #SHIFT13,       D3
@@ -660,7 +664,7 @@ Decode_Move_Src_Mode
 Decode_Move_Dest
         BRA     Decode_Move_Dest_Reg
         
-Decode_Move_Dest_Reg
+Decode_Move_Dest_Reg                        *isolates bits 4-6
         CLR     D3
         CLR     D4
         CLR     D5
@@ -673,9 +677,11 @@ Decode_Move_Dest_Reg
         MOVE.B  D4,             var_opcode_dest_reg
         BRA     Decode_Move_Dest_Mode
         
-Decode_Move_Dest_Mode
+Decode_Move_Dest_Mode                       *isolates bits 7-9
         CLR     D3
         CLR     D4
+        CLR     D5
+        MOVE.W  var_opcode_op,  D5
         MOVE.W  D5,             D4
         MOVE.B  #SHIFT12,       D3
         ROR.W   D3,             D4
@@ -693,6 +699,17 @@ Decode_Move_Dest_Mode
         MOVE.B  var_opcode_dest_reg,    D3  *used in CompareXn
         JSR     Buffer_CompareMode
         RTS
+
+;       for use in ADD, ADDQ, SUB, SUBI, CLR, AND, ANDI, EOR, EORI, CMP, CMPI
+Isolate_Size                                *isolates bits 9 and 10 
+        CLR     D4
+        MOVE.W  D5,             D4
+        ROR.W   #7,             D4
+        MOVE.B  #SHIFT14,       D3
+        LSR.W   D3,             D4
+        MOVE.B  D4,             var_opcode_size
+        RTS
+        
 
 *----------------------------------------------------------------
 *              Op Code Decode Print Routines                    |
@@ -1306,6 +1323,7 @@ var_line_number     DS.W    1
 var_output_buffer   DS.L    10
 
     END     START
+
 
 
 
