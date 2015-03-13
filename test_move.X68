@@ -7,10 +7,6 @@
     ORG    $5000        ; end: 5081
 START:                  ; first instruction of program
         ;       destination data no work
-	MOVE.B  D0, D3
-	MOVE.B  (A0),D3
-	MOVE.B  (A0)+,D3
-	MOVE.B  -(A0),D3
 	MOVE.B  #2, D3                  *causes crash
 	MOVE.B  $3333, D3
 	MOVE.B  $44444444, D3

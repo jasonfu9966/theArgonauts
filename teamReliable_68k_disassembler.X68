@@ -110,37 +110,37 @@ code0011        JSR             Group0011       *MOVE - Word
 code0100        JSR             Group0100       *MOVEM + LEA, CLR, JSR, RTS
                 BRA             DisplayToConsole
 
-code0101        JSR             code0101        *ADDQ
+code0101        JSR             Group0101        *ADDQ
                 BRA             DisplayToConsole
 
-code0110        JSR             code0110        *Branch Op's: BCC, BGT, BLE, BVS, BRA
+code0110        JSR             Group0110        *Branch Op's: BCC, BGT, BLE, BVS, BRA
                 BRA             DisplayToConsole
 
-code0111        JSR             code0111        *MOVEQ
+code0111        JSR             Group0111        *MOVEQ
                 BRA             DisplayToConsole
 
-code1000        JSR             code1000        *DIVS,
+code1000        JSR             Group1000        *DIVS,
                 BRA             DisplayToConsole
 
-code1001        JSR             code1001        *SUB, SUBA
+code1001        JSR             Group1001        *SUB, SUBA
                 BRA             DisplayToConsole
 
-code1010        JSR             code1010        *NOT USED
+code1010        JSR             Group1010        *NOT USED
                 BRA             DisplayToConsole
  
-code1011        JSR             code1011        *EOR, CMP, CMPA,
+code1011        JSR             Group1011        *EOR, CMP, CMPA,
                 BRA             DisplayToConsole
 
-code1100        JSR             code1100        *MULS, AND
+code1100        JSR             Group1100        *MULS, AND
                 BRA             DisplayToConsole
 
-code1101        JSR             code1101        *ADD, ADDA
+code1101        JSR             Group1101        *ADD, ADDA
                 BRA             DisplayToConsole
 
-code1110        JSR             code1110        *Shift/Rotate Op's: LSR, LSL, ASR, ASL, ROR, ROL
+code1110        JSR             Group1110        *Shift/Rotate Op's: LSR, LSL, ASR, ASL, ROR, ROL
                 BRA             DisplayToConsole
 
-code1111        JSR             code1111        *NOT USED (Not valid for any 68k Op Codes)
+code1111        JSR             Group1111        *NOT USED (Not valid for any 68k Op Codes)
                 BRA             DisplayToConsole
 
 *----------------------------------------------------------------
@@ -471,7 +471,7 @@ Group0101
 *            JSR     Decode_Isolate0to7onD4
 
 *----------------Group0110
-code0110Decode          *Immediate OP code: BCC, BGT, BLE, BVS, BRA
+Group0110          *Immediate OP code: BCC, BGT, BLE, BVS, BRA
 
 *            JSR     ClearAllDn
 *            MOVE.W  var_opcode_op,  D5
@@ -479,9 +479,9 @@ code0110Decode          *Immediate OP code: BCC, BGT, BLE, BVS, BRA
 *            MOVE.W  D5,     D4
 *            JSR     Decode_Isolate0to7onD4
 
-*----------------Group01111
+*----------------Group0111
 
-code0111Decode          *Immediate OP code: MOVEQ
+Group0111          *Immediate OP code: MOVEQ
 
 *            JSR     ClearAllDn
 *            MOVE.W  var_opcode_op,  D5
@@ -491,7 +491,7 @@ code0111Decode          *Immediate OP code: MOVEQ
 
 *----------------Group1000
 
-code1000Decode           *Immediate OP code: DIVS
+Group1000           *Immediate OP code: DIVS
 
 *            JSR     ClearAllDn
 *            MOVE.W  var_opcode_op,  D5
@@ -501,7 +501,7 @@ code1000Decode           *Immediate OP code: DIVS
 
 *----------------Group1001
 
-code1001Decode           *Immediate OP code: SUB, SUBA
+Group1001           *Immediate OP code: SUB, SUBA
 
 *            JSR     ClearAllDn
 *            MOVE.W  var_opcode_op,  D5
@@ -511,7 +511,7 @@ code1001Decode           *Immediate OP code: SUB, SUBA
 
 *----------------Group1011
 
-code1011Decode           *Immediate OP code: EOR, CMP, CMPA
+Group1011           *Immediate OP code: EOR, CMP, CMPA
 
 *            JSR     ClearAllDn
 *            MOVE.W  var_opcode_op,  D5
@@ -521,7 +521,7 @@ code1011Decode           *Immediate OP code: EOR, CMP, CMPA
 
 *----------------Group1100
 
-code1100Decode           *Immediate OP code: MULS, AND
+Group1100           *Immediate OP code: MULS, AND
 
 *            JSR     ClearAllDn
 *            MOVE.W  var_opcode_op,  D5
@@ -531,7 +531,7 @@ code1100Decode           *Immediate OP code: MULS, AND
 
 *----------------Group1101
 
-AddGroup           *Immediate OP code: ADD, ADDA
+Group1101           *Immediate OP code: ADD, ADDA
 
 *            JSR     ClearAllDn
 *            MOVE.W  var_opcode_op,  D5
@@ -541,7 +541,7 @@ AddGroup           *Immediate OP code: ADD, ADDA
 
 *----------------Group1110
 
-BitShiftGroup       *Immediate OP code: LSR, LSL, ASR, ASL, ROR, ROL
+Group1110       *Immediate OP code: LSR, LSL, ASR, ASL, ROR, ROL
 
 *            JSR     ClearAllDn
 *            MOVE.W  var_opcode_op,  D5
@@ -551,7 +551,7 @@ BitShiftGroup       *Immediate OP code: LSR, LSL, ASR, ASL, ROR, ROL
 
 *----------------Group1111
 
-outBadData           *No immediate op code
+Group1111           *No immediate op code
 
 *            JSR     ClearAllDn
 *            MOVE.W  var_opcode_op,  D5
@@ -610,7 +610,7 @@ Decode_Move_Dest_Reg
         CLR     D3
         CLR     D4
         CLR     D5
-        MOVE.B  var_opcode_op,  D5
+        MOVE.W  var_opcode_op,  D5
         MOVE.W  D5,             D4
         MOVE.B  #SHIFT12,       D3
         ROR.W   D3,             D4
@@ -1244,6 +1244,7 @@ var_line_number     DS.W    1
 var_output_buffer   DS.L    10
 
     END     START
+
 
 
 
