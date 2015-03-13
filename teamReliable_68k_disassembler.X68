@@ -455,7 +455,6 @@ Group0100
         LSL.W   #4,             D4
         MOVE.W  #SHIFT12,       D3
         LSR.W   D3,             D4
-
         MOVE.B  D4,             var_group0100_id
         
         MOVE.W  D5,             D4
@@ -829,7 +828,6 @@ CMPI_Decode
         JSR     BufferSpace
         MOVE.B  var_opcode_dest_mode,   D2  *used in CompareMode
         MOVE.B  var_opcode_dest_reg,    D3  *used in CompareXn
-
         JSR     Decode_CompareMode
         RTS
 
@@ -838,17 +836,42 @@ LEA_Decode
         JSR     Buffer_LEA
         JSR     BufferTab
         JSR     BufferSpace
-        MOVE.W  var_opcode_src_mode,    D3
-        MOVE.W  var_opcpde_src_reg,    D2
-        JSR     
+        MOVE.B  var_opcode_src_mode,    D2
+        MOVE.B  var_opcode_src_reg,     D3
+        JSR     Decode_CompareMode
+        JSR     BufferComma
+        JSR     BufferSpace
+        MOVE.B  var_group0100_id,       D3
+        MOVE.B  #%001,                  var_opcode_dest_mode
+        MOVE.B  var_opcode_dest_mode,   D2
+        JSR     Decode_CompareMode
+        RTS
 
 CLR_Decode
+        JSR     Buffer_CLR
+        JSR     Decode_OpCode_Size
+        JSR     BufferTab
+        JSR     BufferSpace
+        MOVE.B  var_opcode_src_mode,    D2
+        MOVE.B  var_opcode_src_reg,     D3
+        JSR     Decode_CompareMode
+        RTS
 
 MOVEM_Decode
 
+
 JSR_Decode
+        JSR     Buffer_JSR
+        JSR     BufferTab
+        JSR     BufferSpace
+        MOVE.B  var_opcode_src_reg,    D2
+        MOVE.B  var_opcode_src_mode,   D3
+        JSR     Decode_CompareMode
+        JSR
 
 RTS_Decode
+        JSR     Buffer_RTS
+        RTS
 
 *----------------------------------------------------------------
 *              Op Code Name Buffer Routines                     |
