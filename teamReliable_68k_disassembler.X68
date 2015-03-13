@@ -16,6 +16,7 @@ SHIFT10 EQU     10
 SHIFT11 EQU     11
 SHIFT12 EQU     12
 SHIFT13 EQU     13
+SHIFT14 EQU     14
 
 *===Code Body===*
 
@@ -452,11 +453,53 @@ Group0100
         LSL.W   #4,             D4
         MOVE.W  #SHIFT12,       D3
         LSR.W   D3,             D4
-        MOVE.W  D4,             var_group0100_id
+        MOVE.B  D4,             var_group0100_id
+        
+        MOVE.W  D5,             D4
+        LSL.W   #7,             D4
+        MOVE.W  #SHIFT13,       D3
+        LSR.W   D3,             D4
+        MOVE.W  D4,             var_group0100_id_LEA       
+        
+        MOVE.W  D5,             D4
+        LSL.W   #8,             D4
+        MOVE.W  #SHIFT14,       D3
+        LSR.W   D3,             D4
+        MOVE.B  D4,             var_opcode_size        
         
         MOVE.W  D5,             D4
         LSL.W   #4,             D4
-        MOVE.W  #SHIFT13,       
+        MOVE.W  #SHIFT13,       D3
+        LSR.W   D3,             D4
+        MOVE.B  D4,             var_opcode_dest_reg
+
+        MOVE.W  D5,             D4
+        MOVE.W  #SHIFT10,       D3
+        LSL.W   D3,             D4
+        MOVE.W  #SHIFT13,       D3
+        LSR.W   D3,             D4
+        MOVE.W  D4,             var_opcode_src_mode
+                
+        MOVE.W  D5,             D4
+        MOVE.W  #SHIFT13,       D3
+        LSL.W   D3,             D4
+        LSR.W   D3,             D4
+        MOVE.W  D4,             var_opcode_src_reg
+        
+        CMPI.W  #%111,          var_group0100_id_LEA
+        BEQ     LEA_Decode
+        CMPI.W  #%0010,         var_group0100_id
+        BEQ     CLR_Decode
+        CMPI.W  #%1110,         var_group0100_id
+        BEQ     Group0100_CheckJSROrRTS
+        CMPI.W  #%1100,         var_group0100_id
+        BEQ     MOVEM_Decode
+        CMPI.W  #%1000,         var_group0100_id
+        BEQ     MOVEM_Decode
+        
+        JMP     error
+        
+Group0100_CheckJSROrRTS
         
         
 *            JSR     ClearAllDn
@@ -515,6 +558,10 @@ Group1001           *Immediate OP code: SUB, SUBA
 *            *---Isolate next four bits
 *            MOVE.W  D5,     D4
 *            JSR     Decode_Isolate0to7onD4
+
+*----------------Group1010
+
+Group1010
 
 *----------------Group1011
 
@@ -711,6 +758,11 @@ CMPI_Print
         JSR     Buffer_CompareMode
         RTS
 
+LEA_Decode
+
+CLR_Decode
+
+MOVEM_Decode
 
 *----------------------------------------------------------------
 *              Op Code Name Buffer Routines                     |
@@ -835,7 +887,7 @@ Buffer_GetIDataBySize
         RTS
         
 *----------------------------------------------------------------
-*              EA Component Buffer Helper Routines              |
+*              EA Component Decode Helper Routines              |
 *----------------------------------------------------------------
 
 Buffer_GetByte
@@ -1241,6 +1293,9 @@ var_opcode_src_reg      DS.B    1
 var_opcode_dest_mode    DS.B    1
 var_opcode_dest_reg     DS.B    1
 
+var_group0100_id        DS.B    1
+var_group0100_id_LEA    DS.B    1
+
 var_decode_counter  DS.B    1
 var_decode_length   DS.B    1
 
@@ -1251,6 +1306,7 @@ var_line_number     DS.W    1
 var_output_buffer   DS.L    10
 
     END     START
+
 
 
 
