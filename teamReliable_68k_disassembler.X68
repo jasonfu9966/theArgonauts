@@ -450,6 +450,13 @@ Group0100
         MOVE.W  var_opcode_op,  D5
         MOVE.W  D5,             D4
         LSL.W   #4,             D4
+        MOVE.W  #SHIFT12,       D3
+        LSR.W   D3,             D4
+        MOVE.W  D4,             var_group0100_id
+        
+        MOVE.W  D5,             D4
+        LSL.W   #4,             D4
+        MOVE.W  #SHIFT13,       
         
         
 *            JSR     ClearAllDn
@@ -580,8 +587,8 @@ Decode_Move_Src_Reg
         CLR     D5
         MOVE.W  var_opcode_op,  D5
         MOVE.W  D5,             D4
-        MOVE.B  #SHIFT13,       D3
         ROR.W   #3,             D4
+        MOVE.B  #SHIFT13,       D3
         LSR.W   D3,             D4
         MOVE.B  D4,             var_opcode_src_reg
         BRA     Decode_Move_Src_Mode
@@ -590,8 +597,8 @@ Decode_Move_Src_Mode
         CLR     D3
         CLR     D4
         MOVE.W  D5,             D4
-        MOVE.B  #SHIFT13,       D3
         ROR.W   #6,             D4
+        MOVE.B  #SHIFT13,       D3
         LSR.W   D3,             D4
         MOVE.B  D4,             var_opcode_src_mode
         
@@ -610,11 +617,11 @@ Decode_Move_Dest_Reg
         CLR     D3
         CLR     D4
         CLR     D5
-        MOVE.B  var_opcode_op,  D5
+        MOVE.W  var_opcode_op,  D5
         MOVE.W  D5,             D4
         MOVE.B  #SHIFT12,       D3
         ROR.W   D3,             D4
-        MOVE.B  #SHIFT13,       D3
+        MOVE.B  #SHIFT13,       D3 
         LSR.W   D3,             D4
         MOVE.B  D4,             var_opcode_dest_reg
         BRA     Decode_Move_Dest_Mode
@@ -1244,6 +1251,7 @@ var_line_number     DS.W    1
 var_output_buffer   DS.L    10
 
     END     START
+
 
 
 
