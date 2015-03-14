@@ -587,7 +587,6 @@ Group1000
 *Immediate OP code: SUB, SUBA
 *================================================================
 Group1001
-
             JSR     ClearAllDn
             MOVE.W  var_opcode_op,  D5
             MOVE.B  #9,             var_opcode_typeid
