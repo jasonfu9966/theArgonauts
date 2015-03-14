@@ -12,11 +12,13 @@ CR      EQU     $0D *Carriage Return
 
 STACK   EQU     $A000
 
+SHIFT9  EQU     9
 SHIFT10 EQU     10
 SHIFT11 EQU     11
 SHIFT12 EQU     12
 SHIFT13 EQU     13
 SHIFT14 EQU     14
+SHIFT15 EQU     15
 SHIFT16 EQU     16
 SHIFT24 EQU     24
 
@@ -278,7 +280,7 @@ PrintBlankLine
         RTS
         
 *----------------------------------------------------------------
-*              Op Code Decode Routines                          |
+*              Opcode Main Routines                             |
 *----------------------------------------------------------------
 
 
@@ -537,19 +539,39 @@ Group0101
         MOVE.B  var_temp,       var_opcode_dest_reg
         JSR                     ADDQ_DECODE
         RTS
+
+*Group0110
+*Immediate OP code: BCC, BGT, BLE, BVS, BRA
+*================================================================
+
+Group0110
+        JSR     ClearAllDn
+        MOVE.W  var_opcode_op,  D5
         
-*----------------Group0110
-Group0110          *Immediate OP code: BCC, BGT, BLE, BVS, BRA
+        CLR.B   var_group0110_condition
+        MOVE.W  D5,             D4
+        LSL.W   #4,             D4
+        MOVE.W  #SHIFT12,       D3
+        LSR.W   D3,             D4
+        MOVE.B  D4,             var_group0110_condition
+        CLR     D4
+        
+        CLR.B   var_group0110_displacement
+        MOVE.W  D5,             D4
+        LSL.W   #8,             D4
+        LSR.W   #8,             D4
+        MOVE.B  D4,             var_group0110_displacement
+        
+        JSR     Bcc_Decode
+        RTS
+            
 
-*            JSR     ClearAllDn
-*            MOVE.W  var_opcode_op,  D5
-*            *---Isolate next four bits
-*            MOVE.W  D5,     D4
-*            JSR     Decode_Isolate0to7onD4
 
-*----------------Group0111
+*Group0111
+*Immediate OP code: MOVEQ
+*================================================================
 
-Group0111          *Immediate OP code: MOVEQ
+Group0111
 
 *            JSR     ClearAllDn
 *            MOVE.W  var_opcode_op,  D5
@@ -624,24 +646,24 @@ Group1110       *Immediate OP code: LSR, LSL, ASR, ASL, ROR, ROL
             JSR     ClearAllDn
             MOVE.W  var_opcode_op,  D5
             
-            JSR     Isolate_Direction_ToTemp
+            JSR     Isolate_Direction
             MOVE.B  var_temp,       var_opcode_direction
             
-            JSR     Isolate_Size_ToTemp
+            JSR     Isolate_Size
             MOVE.B  var_temp,       var_opcode_size
             
             CLR.W   D4
             MOVE.W  D5,             D4
             LSL.B   #2,             D4
             LSR.B   #7,             D4
-            MOVE.B  D4,             var_opcode_group1110_imme_or_reg
+            MOVE.B  D4,             var_group1110_imme_or_reg
             
             CLR.W   D4
             MOVE.W  D5,             D4
             LSL.W   #4,             D4
             MOVE.B  #SHIFT13,       D3
             LSR.W   D3,             D4
-            MOVE.B  D4,             var_opcode_group1110_count_or_reg
+            MOVE.B  D4,             var_group1110_count_or_reg
             
             CLR     D4
             MOVE.W  D5,             D4
@@ -664,13 +686,13 @@ Group1110       *Immediate OP code: LSR, LSL, ASR, ASL, ROR, ROL
             MOVE.W  #SHIFT14,       D3
             LSL.W   D3,             D4
             LSR.W   D3,             D4
-            CLR.B   var_opcode_group1110_shift_or_rotate
-            MOVE.B  D4,             var_opcode_group1110_shift_or_rotate
+            CLR.B   var_group1110_shift_or_rotate
+            MOVE.B  D4,             var_group1110_shift_or_rotate
             JMP     Group1110_TypeCheck
             
 Group1110_TypeCheck
             CLR     D4
-            MOVE.B  var_opcode_group1110_shift_or_rotate,  D4
+            MOVE.B  var_group1110_shift_or_rotate,  D4
             CMPI.B  #%01,           D4
             BEQ     LSd_Decode
             CMPI.B  #%00,           D4
@@ -690,7 +712,7 @@ Group1111           *No immediate op code
 *            JSR     Decode_Isolate0to7onD4
 
 *----------------------------------------------------------------
-*              Op Code Decode Helper Routines                   |
+*              Bit Isolation Routines                           |
 *----------------------------------------------------------------
 
 Decode_Isolate0to7onD4
@@ -797,19 +819,37 @@ Decode_Move_Dest
         RTS
 
 ;       for use in ADD, ADDQ, SUB, SUBI, CLR, AND, ANDI, EOR, EORI, CMP, CMPI
-Isolate_Size                                *isolates bits 9 and 10 
+*Isolate_Size                                *isolates bits 9 and 10 
+*        CLR     D4
+*        MOVE.W  D5,             D4
+*        ROR.W   #7,             D4
+*        MOVE.B  #SHIFT14,       D3
+*        LSR.W   D3,             D4
+*
+*        MOVE.B  D4,             var_temp
+*        RTS
+        
+Isolate_Size
         CLR     D4
         MOVE.W  D5,             D4
-        ROR.W   #7,             D4
+        ROR.W   #8,             D4
         MOVE.B  #SHIFT14,       D3
         LSR.W   D3,             D4
-
         MOVE.B  D4,             var_temp
         RTS
         
+Isolate_Direction
+        CLR     D4
+        MOVE.W  D5,             D4
+        MOVE.B  #SHIFT9,        D3
+        ROR.W   D3,             D4
+        MOVE.B  #SHIFT15,       D3
+        LSR.W   D3,             D4
+        MOVE.B  D4,             var_temp
+        RTS
 
 *----------------------------------------------------------------
-*              Op Code Decode Print Routines                    |
+*              OpCode Decode Routines                           |
 *----------------------------------------------------------------
 
 
@@ -1025,9 +1065,52 @@ LS_AS_RO_Decode
         JSR     BufferSpace
         JSR     Decode_Shift_End
         RTS
+        
+Bcc_Decode
+        JSR     Bcc_Decode_Type
+        JSR     BufferSpace
+        JSR     Bcc_Decode_Displacement
+        RTS
+        
+Bcc_Decode_Type
+        CLR     D4
+        MOVE.B  var_group0110_condition,    D4
+        CMPI.B  #%0000,                     D4
+        BEQ     Buffer_BRA
+        CMPI.B  #%0010,                     D4
+        BEQ     Buffer_BHI
+        CMPI.B  #%0110,                     D4
+        BEQ     Buffer_BNE
+        CMPI.B  #%0111,                     D4
+        BEQ     Buffer_BEQ
+        CMPI.B  #%1101,                     D4
+        BEQ     Buffer_BLT
+        JMP     error
+        
+Bcc_Decode_Displacement
+        CLR     D4
+        JSR     BufferTab
+        MOVE.B  var_group0110_displacement, D4
+        CMPI.B  #$FF,                       D4
+        BEQ     Bcc_Get_Displacement_Long
+        CMPI.B  #$00,                       D4
+        BEQ     Bcc_Get_Displacement_Word
+        BRA     Bcc_Get_Displacement_Byte
+        
+Bcc_Get_Displacement_Long
+        JSR     Buffer_GetLong
+        RTS
+
+Bcc_Get_Displacement_Word
+        JSR     Buffer_GetWord
+        RTS
+
+Bcc_Get_Displacement_Byte
+        JSR     Buffer_GetByte
+        RTS
 
 *----------------------------------------------------------------
-*              Op Code Name Buffer Routines                     |
+*              Opcode Buffer Routines                           |
 *----------------------------------------------------------------
 
 Buffer_BCHG
@@ -1142,11 +1225,40 @@ Buffer_RTS
         MOVE.B      #$54,   (A6)+
         MOVE.B      #$53,   (A6)+
         RTS
+        
+Buffer_LSd
+        MOVE.B      #$4C,   (A6)+
+        MOVE.B      #$53,   (A6)+
+        RTS
+        
+Buffer_ASd
+        MOVE.B      #$41,   (A6)+
+        MOVE.B      #$53,   (A6)+
+        RTS
+        
+Buffer_ROd
+        MOVE.B      #$52,   (A6)+
+        MOVE.B      #$4F,   (A6)+
+        RTS
 
+Buffer_BRA
+
+Buffer_BHI
+
+Buffer_BNE
+
+Buffer_BEQ
+
+Buffer_BLT
+        
 *----------------------------------------------------------------
-*              Op Code Component Buffer Routines                |
+*              Decode and Buffer Helper Routines                |
 *----------------------------------------------------------------
 
+Buffer8
+        MOVE.B      #$38,   (A6)+
+        RTS
+        
 Decode_OpCode_Size
         CLR         D5
         MOVE.B      var_opcode_size,    D5
@@ -1207,7 +1319,7 @@ BufferLeft
 Decode_Shift_Mid
         CLR         D3
         MOVE.B      #1,                 D3
-        CMP.B       var_opcode_group1110_imme_or_reg,   D3
+        CMP.B       var_group1110_imme_or_reg,   D3
         BEQ         Decode_Shift_Reg
         BNE         Decode_Shift_Imme
         RTS
@@ -1223,9 +1335,9 @@ Decode_Shift_End
 Decode_Shift_EA
         CLR         D3
         CLR         D4
-        MOVE.B      #1,                 D3
-        MOVE.B      var_opcode_dest_reg,                D4
-        CMP.B       var_opcode_group1110_count_or_reg,  D3
+        MOVE.B      #1,                         D3
+        MOVE.B      var_opcode_dest_reg,        D4
+        CMP.B       var_group1110_count_or_reg, D3
         BEQ         Decode_Shift_Mode
         BNE         Decode_Shift_Reg
 
@@ -1233,15 +1345,15 @@ Decode_Shift_Imme
         CLR         D4
         JSR         BufferHash
         JSR         BufferDollar
-        CMP.B       var_opcode_group1110_count_or_reg,  D4
+        CMP.B       var_group1110_count_or_reg, D4
         JSR         Decode_Shift_Xn
         RTS
         
 Decode_Shift_Mode
         CLR         D2
         CLR         D3
-        MOVE.B      var_opcode_dest_mode,   D2
-        MOVE.B      var_opcode_dest_reg,    D3
+        MOVE.B      var_opcode_dest_mode,       D2
+        MOVE.B      var_opcode_dest_reg,        D3
         JSR         Decode_CompareMode
         RTS
         
@@ -1256,7 +1368,7 @@ Decode_Shift_Xn
         MOVE.B      D4,                 D3
         ROR.L       #4,                 D3
         MOVE.B      #0,                 D2
-        CMP.B       var_opcode_group1110,               D2
+        CMP.B       var_group1110_imme_or_reg,  D2
         BEQ         Decode_Shift_Xn_Compare
         MOVE.B      D3,                 D5
         CLR.B       var_decode_length
@@ -1274,7 +1386,7 @@ Decode_Shift_Xn_Compare
         
 
 *----------------------------------------------------------------
-*              Op Code Component Buffer Helper Routines         |
+*              Immediate Data Store Routines                    |
 *----------------------------------------------------------------
 
 Decode_StoreData_Byte
@@ -1316,7 +1428,7 @@ Decode_GetIDataBySize
         RTS
         
 *----------------------------------------------------------------
-*              EA Component Decode Helper Routines              |
+*              Immediate Data Buffer Routines                   |
 *----------------------------------------------------------------
 
 Buffer_GetByte
@@ -1728,14 +1840,23 @@ var_opcode_src_mode     DS.B    1
 var_opcode_src_reg      DS.B    1
 var_opcode_dest_mode    DS.B    1
 var_opcode_dest_reg     DS.B    1
+var_opcode_data_size    DS.B    1
 var_opcode_data         DS.L    1
+var_opcode_direction    DS.B    1
 
 var_group0100_id        DS.B    1
 var_group0100_id_LEA    DS.B    1
 
-var_decode_counter  DS.B    1
-var_decode_length   DS.B    1
-var_decode_buffer_data_flag     DS.B    1
+var_group1110_imme_or_reg       DS.B    1
+var_group1110_count_or_reg      DS.B    1
+var_group1110_shift_or_rotate   DS.B    1
+
+var_group0110_condition     DS.B    1
+var_group0110_displacement  DS.B    1
+
+var_decode_counter          DS.B    1
+var_decode_length           DS.B    1
+var_decode_buffer_data_flag DS.B    1
 
 var_num_displayed   DS.W    1
 
