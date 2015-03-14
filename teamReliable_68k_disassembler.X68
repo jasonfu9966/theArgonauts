@@ -1190,11 +1190,24 @@ Decode_OpCode_Size_Done
         RTS
         
 Decode_OpCode_Direction
+        CLR         D3
+        MOVE.B      var_opcode_direction,   D3
+        CMPI.B      #0,                     D3
+        BEQ         BufferRight
+        BNE         BufferLeft
+        
+BufferRight
+        MOVE.B      #$52,               (A6)+
+        RTS
+        
+BufferLeft
+        MOVE.B      #$4C,               (A6)+
+        RTS
 
 Decode_Shift_Mid
         CLR         D3
         MOVE.B      #1,                 D3
-        CMP.W       var_opcode_group1110_imme_or_reg,   D3
+        CMP.B       var_opcode_group1110_imme_or_reg,   D3
         BEQ         Decode_Shift_Reg
         BNE         Decode_Shift_Imme
         RTS
@@ -1202,20 +1215,63 @@ Decode_Shift_Mid
 Decode_Shift_End
         CLR         D3
         MOVE.B      #3,                 D3
-        CMP.W       var_opcode_size,    D3
+        CMP.B       var_opcode_size,    D3
         BEQ         Decode_Shift_EA
         BNE         Decode_Shift_Reg
         RTS
-        
-Decode_Shift_Reg
 
 Decode_Shift_EA
         CLR         D3
+        CLR         D4
         MOVE.B      #1,                 D3
-        CMP.W       var_opcode_group1110_count_or_reg,  D3
-        
+        MOVE.B      var_opcode_dest_reg,                D4
+        CMP.B       var_opcode_group1110_count_or_reg,  D3
+        BEQ         Decode_Shift_Mode
+        BNE         Decode_Shift_Reg
 
 Decode_Shift_Imme
+        CLR         D4
+        JSR         BufferHash
+        JSR         BufferDollar
+        CMP.B       var_opcode_group1110_count_or_reg,  D4
+        JSR         Decode_Shift_Xn
+        RTS
+        
+Decode_Shift_Mode
+        CLR         D2
+        CLR         D3
+        MOVE.B      var_opcode_dest_mode,   D2
+        MOVE.B      var_opcode_dest_reg,    D3
+        JSR         Decode_CompareMode
+        RTS
+        
+Decode_Shift_Reg
+        JSR         BufferDataReg
+        JSR         Decode_Shift_Xn
+        RTS
+        
+Decode_Shift_Xn
+        CLR         D2
+        CLR         D3
+        MOVE.B      D4,                 D3
+        ROR.L       #4,                 D3
+        MOVE.B      #0,                 D2
+        CMP.B       var_opcode_group1110,               D2
+        BEQ         Decode_Shift_Xn_Compare
+        MOVE.B      D3,                 D5
+        CLR.B       var_decode_length
+        MOVE.B      #1,                 var_decode_length
+        JSR         HexToChar
+        RTS
+        
+Decode_Shift_Xn_Compare
+        CMPI.B      #0,                 D4
+        BEQ         Buffer8
+        MOVE.B      #1,                 var_opcode_data_size
+        MOVE.L      D3,                 var_opcode_data
+        JSR         Buffer_Data
+        RTS
+        
 
 *----------------------------------------------------------------
 *              Op Code Component Buffer Helper Routines         |
@@ -1381,6 +1437,13 @@ ImmediateData_TypeSize2
         CMPI.B  #%11,               D4
         BEQ     Buffer_GetLong
         BRA     error
+        
+Buffer_Data
+        CLR     D5
+        MOVE.L  var_opcode_data,        D5
+        MOVE.B  var_opcode_data_size,   var_decode_length
+        JSR     HexToChar
+        RTS
         
 *----------------------------------------------------------------
 *              Buffer Load Routines                             |
