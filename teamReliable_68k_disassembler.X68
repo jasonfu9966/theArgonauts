@@ -289,7 +289,7 @@ PrintBlankLine
 *================================================================
 Group0000
         JSR     ClearAllDn
-        MOVE.W  #0,             var_opcode_typeid
+        MOVE.B  #0,             var_opcode_typeid
         MOVE.W  var_opcode_op,  D5
         *--Isolate next 4 bits
         *--Isolate size (bit #0 to #2, byte size)
@@ -460,7 +460,7 @@ Group0100
         LSL.W   #7,             D4
         MOVE.W  #SHIFT13,       D3
         LSR.W   D3,             D4
-        MOVE.W  D4,             var_group0100_id_LEA       
+        MOVE.B  D4,             var_group0100_id_LEA       
         
         MOVE.W  D5,             D4
         LSL.W   #8,             D4
@@ -480,31 +480,31 @@ Group0100
         LSL.W   D3,             D4
         MOVE.W  #SHIFT13,       D3
         LSR.W   D3,             D4
-        MOVE.W  D4,             var_opcode_src_mode
+        MOVE.B  D4,             var_opcode_src_mode
                 
         MOVE.W  D5,             D4
         MOVE.W  #SHIFT13,       D3
         LSL.W   D3,             D4
         LSR.W   D3,             D4
-        MOVE.W  D4,             var_opcode_src_reg
+        MOVE.B  D4,             var_opcode_src_reg
         
-        CMPI.W  #%111,          var_group0100_id_LEA
+        CMPI.B  #%111,          var_group0100_id_LEA
         BEQ     LEA_Decode
-        CMPI.W  #%0010,         var_group0100_id
+        CMPI.B  #%0010,         var_group0100_id
         BEQ     CLR_Decode
-        CMPI.W  #%1100,         var_group0100_id
+        CMPI.B  #%1100,         var_group0100_id
         BEQ     MOVEM_Decode_MemToReg
-        CMPI.W  #%1000,         var_group0100_id
+        CMPI.B  #%1000,         var_group0100_id
         BEQ     MOVEM_Decode_RegToMem
-        CMPI.W  #%1110,         var_group0100_id
+        CMPI.B  #%1110,         var_group0100_id
         BEQ     Group0100_CheckJSROrRTS
         
         JMP     error
         
 Group0100_CheckJSROrRTS
-        CMPI.W  #%10,           var_opcode_size
+        CMPI.B  #%10,           var_opcode_size
         BEQ     JSR_Decode
-        CMPI.W  #01,            var_opcode_size
+        CMPI.B  #01,            var_opcode_size
         BEQ     RTS_Decode
         BNE     error
         
@@ -1131,7 +1131,7 @@ MOVEM_Decode_RegToMem
 
 MOVEM_Decode_MemToReg
         JSR     MOVEM_Decode
-        CMPI.W  #%111,                  var_opcode_src_mode
+        CMPI.B  #%111,                  var_opcode_src_mode
         BEQ     MOVEM_Decode_Get_Word
         MOVE.B  var_opcode_src_mode,    D2
         MOVE.B  var_opcode_src_reg,     D3
@@ -1613,7 +1613,7 @@ Decode_StoreData_Long
 
 Decode_GetIDataBySize
         JSR         BufferHash
-        MOVE.W      var_opcode_size,    D1
+        MOVE.B      var_opcode_size,    D1
         CMPI.B      #0,                 D1
         BEQ         Buffer_GetByte
         CMPI.B      #1,                 D1
@@ -2029,8 +2029,7 @@ msg_end_request     DC.B    'Please enter a ending address: ',0
 msg_continue_request    DC.B    'Hit any key to continue...',0
 msg_goagain_request     DC.B    'Would you like to dissassemble a new location?',CR,LF
                         DC.B    'Type (y)es or (n)o and hit "Enter"',0
-msg_thanks              DC.B    'Thanks for using the TeamReliable Disassembler!',CR,LF
-                        DC.B    'Please give us money. ',0
+msg_thanks              DC.B    'Thanks for using the TeamReliable Disassembler!',CR,LF,0
 msg_blank               DC.B    '',0
 msg_morework            DC.B    'Guess who still has more work to do',CR,LF,0
 
