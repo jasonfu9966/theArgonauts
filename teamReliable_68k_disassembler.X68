@@ -621,11 +621,63 @@ Group1101           *Immediate OP code: ADD, ADDA
 
 Group1110       *Immediate OP code: LSR, LSL, ASR, ASL, ROR, ROL
 
-*            JSR     ClearAllDn
-*            MOVE.W  var_opcode_op,  D5
-*            *---Isolate next four bits
-*            MOVE.W  D5,     D4
-*            JSR     Decode_Isolate0to7onD4
+            JSR     ClearAllDn
+            MOVE.W  var_opcode_op,  D5
+            
+            JSR     Isolate_Direction_ToTemp
+            MOVE.B  var_temp,       var_opcode_direction
+            
+            JSR     Isolate_Size_ToTemp
+            MOVE.B  var_temp,       var_opcode_size
+            
+            CLR.W   D4
+            MOVE.W  D5,             D4
+            LSL.B   #2,             D4
+            LSR.B   #7,             D4
+            MOVE.B  D4,             var_opcode_group1110_imme_or_reg
+            
+            CLR.W   D4
+            MOVE.W  D5,             D4
+            LSL.W   #4,             D4
+            MOVE.B  #SHIFT13,       D3
+            LSR.W   D3,             D4
+            MOVE.B  D4,             var_opcode_group1110_count_or_reg
+            
+            CLR     D4
+            MOVE.W  D5,             D4
+            MOVE.W  #SHIFT10,       D3
+            LSL.W   D3,             D4
+            MOVE.W  #SHIFT13,       D3
+            LSR.W   D3,             D4
+            MOVE.B  D4,             var_opcode_dest_mode
+            
+            CLR     D4
+            MOVE.W  D5,             D4
+            MOVE.W  #SHIFT13,       D3
+            LSL.W   D3,             D4
+            LSR.W   D3,             D4
+            MOVE.B  D4,             var_opcode_dest_reg
+            
+            CLR     D4
+            MOVE.W  D5,             D4
+            LSR.W   #3,             D4
+            MOVE.W  #SHIFT14,       D3
+            LSL.W   D3,             D4
+            LSR.W   D3,             D4
+            CLR.B   var_opcode_group1110_shift_or_rotate
+            MOVE.B  D4,             var_opcode_group1110_shift_or_rotate
+            JMP     Group1110_TypeCheck
+            
+Group1110_TypeCheck
+            CLR     D4
+            MOVE.B  var_opcode_group1110_shift_or_rotate,  D4
+            CMPI.B  #%01,           D4
+            BEQ     LSd_Decode
+            CMPI.B  #%00,           D4
+            BEQ     ASd_Decode
+            CMPI.B  #%11,           D4
+            BEQ     ROd_Decode
+            BNE     error
 
 *----------------Group1111
 
@@ -950,6 +1002,30 @@ DIVS_Decode                             ;figure out about printing immediate dat
         JSR     Decode_CompareMode
         RTS
 
+LSd_Decode
+        JSR     Buffer_LSd
+        JSR     LS_AS_RO_Decode
+        RTS
+
+ASd_Decode
+        JSR     Buffer_ASd
+        JSR     LS_AS_RO_Decode
+        RTS
+        
+ROd_Decode
+        JSR     Buffer_ROd
+        JSR     LS_AS_RO_Decode
+        RTS
+
+LS_AS_RO_Decode
+        JSR     Decode_Opcode_Direction
+        JSR     Decode_Opcode_Size
+        JSR     Decode_Shift_Mid
+        JSR     BufferComma
+        JSR     BufferSpace
+        JSR     Decode_Shift_End
+        RTS
+
 *----------------------------------------------------------------
 *              Op Code Name Buffer Routines                     |
 *----------------------------------------------------------------
@@ -1112,7 +1188,34 @@ BufferSizeLong
 Decode_OpCode_Size_Done
         CLR         D5
         RTS
+        
+Decode_OpCode_Direction
 
+Decode_Shift_Mid
+        CLR         D3
+        MOVE.B      #1,                 D3
+        CMP.W       var_opcode_group1110_imme_or_reg,   D3
+        BEQ         Decode_Shift_Reg
+        BNE         Decode_Shift_Imme
+        RTS
+
+Decode_Shift_End
+        CLR         D3
+        MOVE.B      #3,                 D3
+        CMP.W       var_opcode_size,    D3
+        BEQ         Decode_Shift_EA
+        BNE         Decode_Shift_Reg
+        RTS
+        
+Decode_Shift_Reg
+
+Decode_Shift_EA
+        CLR         D3
+        MOVE.B      #1,                 D3
+        CMP.W       var_opcode_group1110_count_or_reg,  D3
+        
+
+Decode_Shift_Imme
 
 *----------------------------------------------------------------
 *              Op Code Component Buffer Helper Routines         |
