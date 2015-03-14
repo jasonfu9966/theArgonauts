@@ -419,7 +419,7 @@ Group0001
 Group0010
         JSR     ClearAllDn
         MOVE.B  #2,     var_opcode_typeid
-        MOVE.B  #3,     var_opcode_size
+        MOVE.B  #2,     var_opcode_size
         JSR     Buffer_MOVE
         JSR     BufferSizeLong
         JSR     Decode_Move_src
@@ -434,7 +434,7 @@ Group0010
 Group0011
         JSR     ClearAllDn
         MOVE.B  #3,     var_opcode_typeid
-        MOVE.B  #2,     var_opcode_size
+        MOVE.B  #3,     var_opcode_size
         JSR     Buffer_MOVE
         JSR     BufferSizeWord
         JSR     Decode_Move_src

@@ -6,6 +6,9 @@
 *-----------------------------------------------------------
     ORG    $5000        ; end: 5081
 START:                  ; first instruction of program
+
+    MOVE.W  #1201,D1
+
 *    BCHG    #$20,(A1)
 *    BCHG    D1, (A4)+
 *    BCHG    D4,D3
@@ -22,14 +25,14 @@ START:                  ; first instruction of program
 *	MOVE.B  (A0),D3
 *	MOVE.B  (A0)+,D3
 *	MOVE.B  -(A0),D3
-	MOVE.B  #2, D3
-	MOVE.B  $3333, D3
-	MOVE.B  $44444444, D3
-	MOVE.B  D0, $3333
-	MOVE.B  D0, $44444444
-	MOVE.B  D0, (A3)
-	MOVE.B  D0, (A3)+
-	MOVE.B  D0, -(A3)
+*	MOVE.B  #2, D3
+*	MOVE.B  $3333, D3
+*	MOVE.B  $44444444, D3
+*	MOVE.B  D0, $3333
+*	MOVE.B  D0, $44444444
+*	MOVE.B  D0, (A3)
+*	MOVE.B  D0, (A3)+
+*	MOVE.B  D0, -(A3)
 	
 *	MOVE.W  D0, D3
 *	MOVE.W  (A0),D3
@@ -65,6 +68,7 @@ START:                  ; first instruction of program
 * Put variables and constants here
 
     END    START        ; last line of source
+
 
 
 
