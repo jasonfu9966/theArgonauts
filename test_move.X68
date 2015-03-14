@@ -43,6 +43,12 @@ START:                  ; first instruction of program
 	MOVE.L  D0, (A3)+
 	MOVE.L  D0, -(A3)    
 
+    MOVEM.L D0-D7/A0-A6,$1234
+    MOVEM.L (A5),D0-D2/D5-D7/A0-A3/A6
+    MOVEM.W (A7)+,D0-D5/D7/A0-A6
+    MOVEM.W D0-D5/D7/A0-A6,-(A7)  
+
+
 * Put program code here
 
     SIMHALT             ; halt simulator
@@ -50,6 +56,7 @@ START:                  ; first instruction of program
 * Put variables and constants here
 
     END    START        ; last line of source
+
 
 
 
