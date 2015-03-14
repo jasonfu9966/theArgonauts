@@ -680,26 +680,109 @@ Decode_SUB_EA_Dest
 *Immediate OP code: *NOT USED
 *================================================================
 Group1010
-        JMP error
+            JSR     ClearAllDn
+            MOVE.W  var_opcode_op,  D5
+            JMP error
 
 
 *Group1011
 *Immediate OP code: EOR, CMP, CMPA
 *================================================================
 Group1011
-*            JSR     ClearAllDn
-*            MOVE.W  var_opcode_op,  D5
-*            *---Isolate next four bits
-*            MOVE.W  D5,     D4
-*            JSR     Decode_Isolate0to7onD4
+            JSR     ClearAllDn
+            MOVE.W  var_opcode_op,  D5
 
+            MOVE.B  #11, var_opcode_typeid
 
+            MOVE.W  D5,             D4
+            MOVE.W  #7,             D4
+            LSL.W   D1,             D4
+            MOVE.W  #SHIFT13,       D3
+            LSR.W   D3,             D4
+            MOVE.B  D0,             var_opcode_mode_op
+
+            MOVE.B  var_opcode_mode_op, D4
+            MOVE.W  #SHIFT14,       D3
+            LSL.W   D4,             D3
+            LSR.W   D4,             D3
+            MOVE.B  D0,             var_opcode_size
+
+            MOVE.W  D5,             D4
+            MOVE.W  #SHIFT13,       D3
+            LSL.W   #4,             D4
+            LSR.W   D3,             D4
+            MOVE.B  D4,             var_opcode_Xn
+
+            MOVE.W  D5,             D4
+            MOVE.W  #SHIFT10,       D3
+            LSL.W   D3,             D4
+            MOVE.W  #SHIFT13,       D3
+            LSR.W   D3,             D4
+            MOVE.B  D4,             var_opcode_mode
+
+            MOVE.W  D5,             D4
+            MOVE.W  #13,            D3
+            LSL.W   D3, D4
+            LSR.W   D3, D4
+            MOVE.B  D0,             var_opcode_Dn
+
+            BTST    #2,             var_opcode_mode
+            BNE     Decode_EOR
+            CMPI.B  #%11,           var_opcode_size
+            BEQ     Decode_CMPA
+            BNE     Decode_CMP
+            
+Decode_EOR
+            JSR     Buffer_EOR
+            JSR     Decode_Opcode_Size
+            MOVE.B  var_opcode_Xn,      D3
+            JSR     Buffer_Mode_DataReg
+            JSR     BufferComma
+            JSR     BufferSpace
+            MOVE.B  var_opcode_mode,    D2
+            MOVE.B  var_opcode_Dn,      D3
+            JSR     Decode_CompareMode
+            RTS                
+
+Decode_CMPA
+            JSR     Buffer_CMPA
+            JSR     Decode_Opcode_CMPA_Size
+            MOVE.B  var_opcode_mode,    D2
+            MOVE.B  var_opcode_Dn,      D3
+            JSR     Decode_CompareMode
+            JSR     BufferComma
+            JSR     BufferSpace
+            MOVE.B  var_opcode_Xn,      D3
+            JSR     Buffer_Mode_AddrReg
+            RTS               
+
+Decode_Opcode_CMPA_Size
+            CMPI.B  #3,                 var_opcode_mode_op
+            BEQ     BufferSizeWord
+            CMPI.B  #7,                 var_opcode_mode_op
+            BEQ     BufferSizeLong
+            BNE     error
+            
+Decode_CMP
+            JSR     Buffer_CMP
+            JSR     Decode_Opcode_Size
+            MOVE.B  var_opcode_mode,    D2
+            MOVE.B  var_opcode_Dn,      D3
+            JSR     Decode_CompareMode
+            JSR     BufferComma
+            JSR     BufferSpace
+            MOVE.B  var_opcode_Xn,      D3
+            JSR     Buffer_Mode_DataReg
+
+            RTS
+            
 *Group1100
 *Immediate OP code: MULS, AND
 *================================================================
 Group1100
-*            JSR     ClearAllDn
-*            MOVE.W  var_opcode_op,  D5
+            JSR     ClearAllDn
+            MOVE.W  var_opcode_op,  D5
+            JMP error
 *            *---Isolate next four bits
 *            MOVE.W  D5,     D4
 *            JSR     Decode_Isolate0to7onD4
@@ -709,8 +792,9 @@ Group1100
 *Immediate OP code: ADD, ADDA
 *================================================================
 Group1101
-*            JSR     ClearAllDn
-*            MOVE.W  var_opcode_op,  D5
+            JSR     ClearAllDn
+            MOVE.W  var_opcode_op,  D5
+            JMP error
 *            *---Isolate next four bits
 *            MOVE.W  D5,     D4
 *            JSR     Decode_Isolate0to7onD4            
@@ -1220,14 +1304,21 @@ Buffer_CMP
         MOVE.B      #$4D,   (A6)+
         MOVE.B      #$50,   (A6)+
         RTS
+        
+Buffer_CMPA
+        JSR         Buffer_CMP
+        MOVE.B      #$41,   (A6)+
+        RTS
 
 Buffer_ANDI
         JSR         Buffer_AND
         MOVE.B      #$49,   (A6)+
+        RTS
 
 Buffer_SUBI
         JSR         Buffer_SUB
         MOVE.B      #$49,   (A6)+
+        RTS
 
 Buffer_AND
         MOVE.B      #$41,   (A6)+
@@ -1239,6 +1330,11 @@ Buffer_SUB
         MOVE.B      #$53,   (A6)+
         MOVE.B      #$55,   (A6)+
         MOVE.B      #$42,   (A6)+
+        RTS
+        
+Buffer_SUBA
+        JSR         Buffer_SUB
+        MOVE.B      #$41,   (A6)+
         RTS
 
 Buffer_MOVE
